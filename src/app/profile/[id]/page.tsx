@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
+import Header from '@/components/Header'
 
 // Define types for our data
 interface User {
@@ -85,18 +86,28 @@ export default function Profile() {
 
   if (userLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-black text-white">
-        <p>Lade Profil...</p>
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black text-white flex">
+        <Header />
+        <div className="flex-grow md:ml-64 pb-16 md:pb-0">
+          <div className="flex items-center justify-center min-h-screen">
+            <p>Loading profile...</p>
+          </div>
+        </div>
       </div>
     )
   }
 
   if (!profileUser) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-black text-white">
-        <div>
-          <p>Profil nicht gefunden.</p>
-          <Link href="/" className="text-blue-400 ml-2">← Zurück</Link>
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black text-white flex">
+        <Header />
+        <div className="flex-grow md:ml-64 pb-16 md:pb-0">
+          <div className="flex items-center justify-center min-h-screen">
+            <div>
+              <p>Profile not found.</p>
+              <Link href="/" className="text-green-400 hover:underline ml-2">← Back</Link>
+            </div>
+          </div>
         </div>
       </div>
     )
@@ -105,41 +116,44 @@ export default function Profile() {
   const isOwnProfile = currentUser?.id === profileUser.id
 
   return (
-    <div className="min-h-screen bg-black text-white">
-      <div className="p-6 border-b border-gray-800">
-        <div className="flex items-center gap-4 mb-4">
-          <img
-            src={profileUser.avatar_url || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + profileUser.username}
-            alt={profileUser.username}
-            className="w-16 h-16 rounded-full"
-            onError={(e) => {
-              e.currentTarget.src = 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + profileUser.username
-            }}
-          />
-          <div>
-            <h1 className="text-2xl font-bold">{profileUser.username}</h1>
-            <p className="text-gray-500">{posts.length} Beiträge</p>
-          </div>
-        </div>
-        {isOwnProfile && (
-          <Link href="/profile/edit" className="text-blue-400 hover:underline">Profil bearbeiten</Link>
-        )}
-        <Link href="/" className="text-blue-400 hover:underline block mt-2">← Zurück</Link>
-      </div>
-
-      {loading ? (
-        <p className="text-center py-8">Lade Beiträge...</p>
-      ) : posts.length === 0 ? (
-        <p className="text-center py-8 text-gray-500">Keine Beiträge vorhanden.</p>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 p-4">
-          {posts.map((post) => (
-            <div key={post.id} className="aspect-square rounded overflow-hidden">
-              <img src={post.media_url} alt={post.title || 'Post image'} className="w-full h-full object-cover" />
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black text-white flex">
+      <Header />
+      <div className="flex-grow md:ml-64 pb-16 md:pb-0">
+        <div className="p-6 border-b border-gray-800">
+          <div className="flex items-center gap-4 mb-4">
+            <img
+              src={profileUser.avatar_url || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + profileUser.username}
+              alt={profileUser.username}
+              className="w-16 h-16 rounded-full"
+              onError={(e) => {
+                e.currentTarget.src = 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + profileUser.username
+              }}
+            />
+            <div>
+              <h1 className="text-2xl font-bold">{profileUser.username}</h1>
+              <p className="text-gray-400">{posts.length} Posts</p>
             </div>
-          ))}
+          </div>
+          {isOwnProfile && (
+            <Link href="/profile/edit" className="text-green-400 hover:underline">Edit profile</Link>
+          )}
+          <Link href="/" className="text-green-400 hover:underline block mt-2">← Back</Link>
         </div>
-      )}
+
+        {loading ? (
+          <p className="text-center py-8 text-gray-400">Loading posts...</p>
+        ) : posts.length === 0 ? (
+          <p className="text-center py-8 text-gray-500">No posts available.</p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 p-4">
+            {posts.map((post) => (
+              <div key={post.id} className="aspect-square rounded-lg overflow-hidden border border-gray-700 shadow-card">
+                <img src={post.media_url} alt={post.title || 'Post image'} className="w-full h-full object-cover transition-transform duration-300 hover:scale-105" />
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   )
 }

@@ -76,56 +76,65 @@ const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {    e.preve
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-black px-4 pb-16 md:pb-0">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
-          <h2 className="text-3xl font-bold">Create an account</h2>
-          <p className="mt-2 text-gray-600 dark:text-gray-300">
-            Join Insta1 today
+          <div className="flex justify-center mb-4">
+            <div className="w-16 h-16 rounded-full flex items-center justify-center">
+              <img 
+                src="/images/shadow-logo.png" 
+                alt="Shadow Logo" 
+                className="w-full h-full rounded-full object-contain"
+              />
+            </div>
+          </div>
+          <h2 className="text-3xl font-bold text-white">Create an account</h2>
+          <p className="mt-2 text-gray-400">
+            Join Shadow today
           </p>
         </div>
 
         {error && (
-          <div className="bg-red-100 text-red-700 p-3 rounded">{error}</div>
+          <div className="bg-red-900/50 border border-red-700 text-red-200 p-3 rounded-lg">{error}</div>
         )}
 
         {success && !requiresConfirmation && (
-          <div className="bg-green-100 text-green-700 p-3 rounded">
+          <div className="bg-green-900/50 border border-green-700 text-green-200 p-3 rounded-lg">
             Account created successfully! Redirecting...
           </div>
         )}
 
         {requiresConfirmation && (
-          <div className="bg-blue-100 text-blue-700 p-3 rounded">
+          <div className="bg-blue-900/50 border border-blue-700 text-blue-200 p-3 rounded-lg">
             <p className="font-medium">Account created successfully!</p>
             <p className="mt-1">Please check your email ({email}) for a confirmation link.</p>
-            <p className="mt-2 text-sm">After confirming your email, you can <Link href="/auth/signin" className="underline">sign in here</Link>.</p>
+            <p className="mt-2 text-sm">After confirming your email, you can <Link href="/auth/signin" className="underline hover:text-blue-300">sign in here</Link>.</p>
           </div>
         )}
 
         <form onSubmit={handleSignUp} className="mt-8 space-y-6">
           <div>
-            <label className="block text-sm font-medium">Username</label>
+            <label className="block text-sm font-medium text-gray-300 mb-1">Username</label>
             <input
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required
-              className="w-full px-4 py-2 rounded border focus:ring focus:ring-blue-200 dark:bg-gray-800"
+              className="w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-700 text-white focus:ring-2 focus:ring-green-500 focus:border-transparent shadow-input"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium">Email</label>
+            <label className="block text-sm font-medium text-gray-300 mb-1">Email</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full px-4 py-2 rounded border focus:ring focus:ring-blue-200 dark:bg-gray-800"
+              className="w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-700 text-white focus:ring-2 focus:ring-green-500 focus:border-transparent shadow-input"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium">Password</label>
+            <label className="block text-sm font-medium text-gray-300 mb-1">Password</label>
             <div className="relative">
               <input
                 type={showPassword ? "text" : "password"}
@@ -133,12 +142,12 @@ const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {    e.preve
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={6}
-                className="w-full px-4 py-2 rounded border focus:ring focus:ring-blue-200 dark:bg-gray-800 pr-10"
+                className="w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-700 text-white focus:ring-2 focus:ring-green-500 focus:border-transparent pr-10 shadow-input"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-200"
               >
                 {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
@@ -147,21 +156,21 @@ const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {    e.preve
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 disabled:opacity-50"
+            className="w-full bg-gradient-to-r from-green-600 to-green-700 text-black py-3 rounded-lg hover:from-green-500 hover:to-green-600 disabled:opacity-50 shadow-button"
           >
             {loading ? 'Signing up...' : 'Sign Up'}
           </button>
         </form>
 
         <div className="text-center mt-4">
-          <Link href="/auth/forgot-password" className="text-blue-600 dark:text-blue-400 text-sm">
+          <Link href="/auth/forgot-password" className="text-green-400 text-sm hover:text-green-300">
             Forgot password?
           </Link>
         </div>
 
-        <p className="text-center">
+        <p className="text-center text-gray-400">
           Already have an account?{' '}
-          <Link href="/auth/signin" className="text-blue-600 dark:text-blue-400">
+          <Link href="/auth/signin" className="text-green-400 hover:text-green-300">
             Sign in
           </Link>
         </p>

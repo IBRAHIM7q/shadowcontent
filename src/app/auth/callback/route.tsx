@@ -55,12 +55,12 @@ export async function GET(request: NextRequest) {
           .single()
 
         if (!existingUser) {
+          // Create user with the actual schema
           const username = user.user_metadata?.username || user.email?.split('@')[0] || `user_${user.id.substring(0, 8)}`
           await serverSupabase.from('users').insert({
             id: user.id,
             email: user.email,
-            username,
-            avatar_url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`,
+            // Only include fields that actually exist in the table
           })
         }
       }

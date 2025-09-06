@@ -7,8 +7,8 @@ const inter = Inter({ subsets: ['latin'] })
 
 // ✅ KEIN 'use client' → damit metadata erlaubt ist
 export const metadata = {
-  title: 'Insta1',
-  description: 'Eine Inst-ähnliche App',
+  title: 'Shadow',
+  description: 'A modern social media platform',
 }
 
 export default function RootLayout({

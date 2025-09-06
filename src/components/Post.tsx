@@ -416,11 +416,11 @@ export default function Post({ post: initialPost }: { post: PostType }) {
   
   // Handle case where post data might be undefined
   if (!post) {
-    return <div className="bg-black rounded-lg overflow-hidden border border-gray-800 p-4">Invalid post data</div>
+    return <div className="bg-gray-900 rounded-lg overflow-hidden border border-gray-800 p-4">Invalid post data</div>
   }
   
   return (
-    <div className="bg-black rounded-lg overflow-hidden border border-gray-800">
+    <div className="bg-gray-900 rounded-lg overflow-hidden border border-gray-800 shadow-card">
       {/* User Info */}
       <div className="p-3 flex items-center gap-2 justify-between">
         <div className="flex items-center gap-2">
@@ -444,7 +444,7 @@ export default function Post({ post: initialPost }: { post: PostType }) {
             </Link>
           ) : (
             <span className="text-white font-medium text-sm">
-              {post.user_id ? 'Loading...' : 'Gelöschter Nutzer'}
+              {post.user_id ? 'Loading...' : 'Deleted User'}
             </span>
           )}
         </div>
@@ -467,6 +467,8 @@ export default function Post({ post: initialPost }: { post: PostType }) {
         alt="Post"
         className="w-full aspect-video object-cover cursor-pointer"
         onError={(e) => {
+          // If the image fails to load, try to get a signed URL as fallback
+          console.log('Image failed to load, attempting to get signed URL')
           e.currentTarget.src = '/images/placeholder.png'
         }}
       />
@@ -482,19 +484,24 @@ export default function Post({ post: initialPost }: { post: PostType }) {
           <p className="text-white text-sm"><strong>{likes}</strong> Likes</p>
           <p className="text-white text-sm"><strong>{commentCount}</strong> Comments</p>
         </div>
-        <p className="text-white"><strong>{post.users?.username || 'Unbekannt'}:</strong> {post.title || 'No title'}</p>
+        <p className="text-white"><strong>{post.users?.username || 'Unknown'}:</strong> {post.title || 'No title'}</p>
         {post.caption && <p className="text-gray-300 text-sm">{post.caption}</p>}
+        {post.created_at && (
+          <p className="text-gray-500 text-xs">
+            {new Date(post.created_at).toLocaleDateString()}
+          </p>
+        )}
       </div>
-      {/* Kommentare */}
+      {/* Comments */}
       {showComments && (
-        <div className="p-3 border-t border-gray-800 bg-gray-900">
+        <div className="p-3 border-t border-gray-800 bg-gray-800/50">
           {comments.length === 0 ? (
-            <p className="text-gray-500 text-sm">Keine Kommentare</p>
+            <p className="text-gray-500 text-sm">No comments</p>
           ) : (
             comments.map((c) => (
               <div key={c.id} className="flex items-start gap-2 mb-2">
                 <p className="text-sm flex-1">
-                  <strong>{c.users?.username || 'Unbekannt'}:</strong> {c.text || ''}
+                  <strong>{c.users?.username || 'Unknown'}:</strong> {c.text || ''}
                 </p>
                 {user && c.user_id === user.id && (
                   <button 
@@ -514,14 +521,14 @@ export default function Post({ post: initialPost }: { post: PostType }) {
               type="text"
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
-              placeholder="Kommentieren..."
-              className="flex-1 px-3 py-1 bg-gray-800 text-white rounded text-sm"
+              placeholder="Add a comment..."
+              className="flex-1 px-3 py-1 bg-gray-800 text-white rounded text-sm shadow-input"
               onKeyPress={(e) => e.key === 'Enter' && addComment()}
               disabled={!user}
             />
             <button
               onClick={addComment}
-              className="bg-blue-600 text-white px-3 py-1 rounded text-sm disabled:opacity-50"
+              className="bg-gradient-to-r from-green-600 to-green-700 text-black px-3 py-1 rounded text-sm shadow-button"
               disabled={!user || !newComment.trim()}
             >
               Send

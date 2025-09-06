@@ -4,18 +4,89 @@ import { NextResponse } from 'next/server'
 export async function GET() {
   try {
     // Test the Supabase connection
-    const { data, error } = await supabase.from('users').select('count').single()
+    console.log('Testing Supabase connection...');
     
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 })
+    // Test authentication status
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    
+    if (sessionError) {
+      console.error('Session error:', sessionError);
+      return NextResponse.json({ 
+        success: false, 
+        error: 'Session error',
+        details: sessionError
+      }, { status: 500 });
     }
     
-    return NextResponse.json({ success: true, data })
+    console.log('Session status:', session ? 'Authenticated' : 'Not authenticated');
+    
+    // Test basic connection with a simple query
+    const { data, error } = await supabase
+      .from('users')
+      .select('id')
+      .limit(1);
+    
+    if (error) {
+      console.error('Error querying users table:', {
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint
+      });
+      
+      return NextResponse.json({ 
+        success: false, 
+        error: error.message,
+        details: {
+          code: error.code,
+          details: error.details,
+          hint: error.hint
+        }
+      }, { status: 500 });
+    }
+    
+    console.log('Successfully queried users table, got data:', data);
+    
+    // Test posts table
+    const { data: postsData, error: postsError } = await supabase
+      .from('posts')
+      .select('id')
+      .limit(1);
+    
+    if (postsError) {
+      console.error('Error querying posts table:', {
+        message: postsError.message,
+        code: postsError.code,
+        details: postsError.details,
+        hint: postsError.hint
+      });
+      
+      return NextResponse.json({ 
+        success: false, 
+        error: postsError.message,
+        details: {
+          code: postsError.code,
+          details: postsError.details,
+          hint: postsError.hint
+        }
+      }, { status: 500 });
+    }
+    
+    console.log('Successfully queried posts table');
+    
+    return NextResponse.json({ 
+      success: true, 
+      message: 'All tests passed',
+      session: session ? 'authenticated' : 'not authenticated',
+      usersSample: data,
+      postsSample: postsData
+    });
   } catch (err: unknown) {
+    console.error('Exception in test-supabase route:', err);
     if (err instanceof Error) {
-      return NextResponse.json({ error: err.message }, { status: 500 })
+      return NextResponse.json({ error: err.message }, { status: 500 });
     } else {
-      return NextResponse.json({ error: 'Unknown error' }, { status: 500 })
+      return NextResponse.json({ error: 'Unknown error' }, { status: 500 });
     }
   }
 }

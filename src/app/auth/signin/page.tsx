@@ -93,24 +93,33 @@ const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-black px-4 pb-16 md:pb-0">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
-          <h2 className="text-3xl font-bold">Sign in</h2>
-          <p className="mt-2 text-gray-600 dark:text-gray-300">
-            to continue to Insta1
+          <div className="flex justify-center mb-4">
+            <div className="w-16 h-16 rounded-full flex items-center justify-center">
+              <img 
+                src="/images/shadow-logo.png" 
+                alt="Shadow Logo" 
+                className="w-full h-full rounded-full object-contain"
+              />
+            </div>
+          </div>
+          <h2 className="text-3xl font-bold text-white">Sign in</h2>
+          <p className="mt-2 text-gray-400">
+            to continue to Shadow
           </p>
         </div>
 
         {error && (
-          <div className="bg-red-100 text-red-700 p-3 rounded">
+          <div className="bg-red-900/50 border border-red-700 text-red-200 p-3 rounded-lg">
             {error}
             {checkingConfirmation && (
               <div className="mt-2">
                 <button
                   onClick={handleResendConfirmation}
                   disabled={loading}
-                  className="text-blue-600 dark:text-blue-400 underline text-sm"
+                  className="text-purple-400 underline text-sm hover:text-purple-300"
                 >
                   {loading ? 'Resending...' : 'Resend confirmation email'}
                 </button>
@@ -121,31 +130,31 @@ const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
 
         <form onSubmit={handleSignIn} className="mt-8 space-y-6">
           <div>
-            <label className="block text-sm font-medium">Email</label>
+            <label className="block text-sm font-medium text-gray-300 mb-1">Email</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full px-4 py-2 rounded border focus:ring focus:ring-blue-200 dark:bg-gray-800"
+              className="w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-700 text-white focus:ring-2 focus:ring-green-500 focus:border-transparent shadow-input"
               disabled={loading}
             />
           </div>
           <div>
-            <label className="block text-sm font-medium">Password</label>
+            <label className="block text-sm font-medium text-gray-300 mb-1">Password</label>
             <div className="relative">
               <input
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full px-4 py-2 rounded border focus:ring focus:ring-blue-200 dark:bg-gray-800 pr-10"
+                className="w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-700 text-white focus:ring-2 focus:ring-green-500 focus:border-transparent pr-10 shadow-input"
                 disabled={loading}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-200"
                 disabled={loading}
               >
                 {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
@@ -155,7 +164,7 @@ const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 disabled:opacity-50"
+            className="w-full bg-gradient-to-r from-green-600 to-green-700 text-black py-3 rounded-lg hover:from-green-500 hover:to-green-600 disabled:opacity-50 shadow-button"
           >
             {loading ? (
               <span className="flex items-center justify-center">
@@ -170,14 +179,14 @@ const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
         </form>
 
         <div className="text-center mt-4">
-          <Link href="/auth/forgot-password" className="text-blue-600 dark:text-blue-400 text-sm">
+          <Link href="/auth/forgot-password" className="text-green-400 text-sm hover:text-green-300">
             Forgot password?
           </Link>
         </div>
 
-        <p className="text-center">
+        <p className="text-center text-gray-400">
           Don&apos;t have an account?{' '}
-          <Link href="/auth/signup" className="text-blue-600 dark:text-blue-400">
+          <Link href="/auth/signup" className="text-green-400 hover:text-green-300">
             Sign up
           </Link>
         </p>

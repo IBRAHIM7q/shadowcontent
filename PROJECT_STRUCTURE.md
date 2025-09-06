@@ -1,11 +1,11 @@
 # Project Structure Documentation
 
 ## Overview
-This document provides a comprehensive overview of the project structure for the Instagram-like application.
+This document provides a comprehensive overview of the project structure for the Shadow social media platform.
 
 ## Root Directory
 ```
-insta1/
+shadow/
 ├── .env.local
 ├── .gitignore
 ├── .nvmrc

@@ -112,16 +112,28 @@ export default function UploadModal({ onClose }: UploadModalProps) {
       const filePath = isStory ? `stories/${fileName}` : `posts/${fileName}`
       
       const { error: uploadError } = await supabase.storage
-        .from('media')
+        .from('post-media')
         .upload(filePath, file!)
 
-      if (uploadError) throw uploadError
+      if (uploadError) {
+        console.error('Upload error details:', JSON.stringify(uploadError, null, 2))
+        throw uploadError
+      }
 
+      // Get public URL for the uploaded file
       const { data: publicUrlData } = supabase.storage
-        .from('media')
+        .from('post-media')
         .getPublicUrl(filePath)
 
+      // Log the public URL data for debugging
+      console.log('Public URL data:', publicUrlData)
+
       const mediaUrl = publicUrlData.publicUrl
+
+      // Verify that we got a valid URL
+      if (!mediaUrl) {
+        throw new Error('Failed to get public URL for uploaded media')
+      }
 
       if (isStory) {
         // Insert into stories table
@@ -133,7 +145,10 @@ export default function UploadModal({ onClose }: UploadModalProps) {
           expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 hours from now
         })
 
-        if (dbError) throw dbError
+        if (dbError) {
+          console.error('Database error details:', JSON.stringify(dbError, null, 2))
+          throw dbError
+        }
       } else {
         // Insert into posts table
         const { error: dbError } = await supabase.from('posts').insert({
@@ -145,17 +160,28 @@ export default function UploadModal({ onClose }: UploadModalProps) {
           created_at: new Date().toISOString(),
         })
 
-        if (dbError) throw dbError
+        if (dbError) {
+          console.error('Database error details:', JSON.stringify(dbError, null, 2))
+          throw dbError
+        }
       }
 
       alert(isStory ? 'Story successfully uploaded!' : 'Post successfully uploaded!')
       onClose()
       window.location.reload()
     } catch (err: unknown) {
-      // Type guard to check if error has a message property
+      // Enhanced error logging as suggested
+      console.error('Upload error:', JSON.stringify(err, null, 2))
+      console.dir(err)
+      
+      // More descriptive error messages
       if (err instanceof Error) {
         console.error('Upload error:', err)
         setError('Upload failed: ' + err.message)
+      } else if (typeof err === 'object' && err !== null && 'message' in err) {
+        // Handle Supabase StorageApiError or similar objects
+        const errorObj = err as { message?: string };
+        setError('Upload failed: ' + (errorObj.message || 'Unknown error'))
       } else {
         console.error('Upload error:', err)
         setError('Upload failed: Unknown error')
@@ -167,13 +193,13 @@ export default function UploadModal({ onClose }: UploadModalProps) {
 
   return (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-gray-800 rounded-2xl max-w-md w-full max-h-screen overflow-y-auto border border-gray-700 shadow-2xl">
+      <div className="bg-gray-800 rounded-2xl max-w-md w-full max-h-screen overflow-y-auto border border-gray-700 shadow-card">
         <div className="p-4 border-b border-gray-700 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-full flex items-center justify-center">
               <img 
-                src="/images/a1i.png" 
-                alt="Insta1 Logo" 
+                src="/images/shadow-logo.png" 
+                alt="Shadow Logo" 
                 className="w-full h-full rounded-full object-contain"
               />
             </div>
@@ -194,8 +220,8 @@ export default function UploadModal({ onClose }: UploadModalProps) {
             <label className="flex flex-col items-center p-8 border-2 border-dashed border-gray-600 rounded-2xl cursor-pointer hover:bg-gray-700/50 transition-colors">
               <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4">
                 <img 
-                  src="/images/a1i.png" 
-                  alt="Insta1 Logo" 
+                  src="/images/shadow-logo.png" 
+                  alt="Shadow Logo" 
                   className="w-12 h-12 object-contain"
                 />
               </div>
@@ -206,8 +232,8 @@ export default function UploadModal({ onClose }: UploadModalProps) {
 
             <div className="flex space-x-4 text-center">
               <div className="flex-1">
-                <div className="w-16 h-16 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <Image size={28} className="text-blue-400" />
+                <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <Image size={28} className="text-green-400" />
                 </div>
                 <h3 className="font-medium text-white">Feed Post</h3>
                 <p className="text-gray-400 text-sm mt-1">Share with followers</p>
@@ -220,14 +246,14 @@ export default function UploadModal({ onClose }: UploadModalProps) {
                 />
                 <label 
                   htmlFor="feed-post-upload"
-                  className="mt-2 inline-block px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg text-sm cursor-pointer transition-colors"
+                  className="mt-2 inline-block px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg text-sm cursor-pointer transition-colors shadow-button"
                 >
                   Select
                 </label>
               </div>
               <div className="flex-1">
-                <div className="w-16 h-16 bg-purple-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <Video size={28} className="text-purple-400" />
+                <div className="w-16 h-16 bg-green-600/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <Video size={28} className="text-green-500" />
                 </div>
                 <h3 className="font-medium text-white">Story</h3>
                 <p className="text-gray-400 text-sm mt-1">24-hour content</p>
@@ -240,7 +266,7 @@ export default function UploadModal({ onClose }: UploadModalProps) {
                 />
                 <label 
                   htmlFor="story-upload"
-                  className="mt-2 inline-block px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg text-sm cursor-pointer transition-colors"
+                  className="mt-2 inline-block px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg text-sm cursor-pointer transition-colors shadow-button"
                 >
                   Select
                 </label>
@@ -277,7 +303,7 @@ export default function UploadModal({ onClose }: UploadModalProps) {
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
+                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white shadow-input"
                   placeholder="Add a title..."
                 />
               </div>
@@ -289,7 +315,7 @@ export default function UploadModal({ onClose }: UploadModalProps) {
                 <textarea
                   value={caption}
                   onChange={(e) => setCaption(e.target.value)}
-                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
+                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white shadow-input"
                   placeholder="Add a caption..."
                   rows={3}
                 />
@@ -305,14 +331,14 @@ export default function UploadModal({ onClose }: UploadModalProps) {
             <div className="flex gap-3 pt-2">
               <button
                 onClick={() => setStep('select')}
-                className="flex-1 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
+                className="flex-1 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors shadow-button"
               >
                 Back
               </button>
               <button
                 onClick={handleSubmit}
                 disabled={uploading || (!isStory && !title.trim())}
-                className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:bg-blue-600/50 disabled:cursor-not-allowed text-white rounded-lg transition-colors flex items-center justify-center"
+                className="flex-1 px-4 py-2 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 disabled:from-green-600/50 disabled:to-green-700/50 disabled:cursor-not-allowed text-black rounded-lg transition-colors flex items-center justify-center shadow-button"
               >
                 {uploading ? (
                   <>

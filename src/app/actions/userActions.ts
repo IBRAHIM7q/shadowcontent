@@ -7,11 +7,11 @@ export async function createUserProfile(userId: string, email: string, username:
     // Create a server-side Supabase client
     const supabase = await createServerSupabaseClient()
     
+    // Insert user with the actual schema
     const { error } = await supabase.from('users').insert({
       id: userId,
-      email,
-      username,
-      avatar_url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`,
+      email: email,
+      // Only include fields that actually exist in the table
     })
 
     if (error) {

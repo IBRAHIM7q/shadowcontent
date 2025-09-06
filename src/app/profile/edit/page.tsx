@@ -3,6 +3,7 @@ import { useAuthStore } from '@/lib/store'
 import { supabase } from '@/lib/supabase'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import Header from '@/components/Header'
 
 // Define types for our data
 interface User {
@@ -126,39 +127,55 @@ export default function Profile() {
     }
   }
 
-  if (loading) return <p className="text-center py-8">Lädt...</p>
+  if (loading) return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black text-white flex">
+      <Header />
+      <div className="flex-grow md:ml-64 pb-16 md:pb-0">
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <div className="w-16 h-16 border-4 border-green-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-gray-400">Loading...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
 
   return (
-    <div className="min-h-screen bg-black text-white">
-      <div className="p-6 border-b border-gray-800">
-        <h1 className="text-2xl font-bold">Profil: {user.username}</h1>
-      </div>
-      <div className="p-6">
-        {/* Statistiken */}
-        <div className="flex gap-8 text-center mb-6">
-          <div>
-            <strong>{posts.length}</strong> Beiträge
-          </div>
-          <Link href={`/profile/${user.id}/followers`} className="hover:underline">
-            <strong>{followers}</strong> Follower
-          </Link>
-          <Link href={`/profile/${user.id}/following`} className="hover:underline">
-            <strong>{following}</strong> Following
-          </Link>
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black text-white flex">
+      <Header />
+      <div className="flex-grow md:ml-64 pb-16 md:pb-0">
+        <div className="p-6 border-b border-gray-800">
+          <h1 className="text-2xl font-bold">Profile: {user.username}</h1>
         </div>
-        
-        {/* Removed the follow button since this is the user's own profile */}
-        
-        {/* Posts Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-6">
-          {posts.map((post) => (
-            <img
-              key={post.id}
-              src={post.media_url}
-              alt="Post"
-              className="aspect-square object-cover rounded"
-            />
-          ))}
+        <div className="p-6">
+          {/* Statistics */}
+          <div className="flex gap-8 text-center mb-6">
+            <div>
+              <strong>{posts.length}</strong> Posts
+            </div>
+            <Link href={`/profile/${user.id}/followers`} className="hover:underline text-green-400">
+              <strong>{followers}</strong> Followers
+            </Link>
+            <Link href={`/profile/${user.id}/following`} className="hover:underline text-green-400">
+              <strong>{following}</strong> Following
+            </Link>
+          </div>
+          
+          {/* Removed the follow button since this is the user's own profile */}
+          
+          {/* Posts Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-6">
+            {posts.map((post) => (
+              <div key={post.id} className="aspect-square rounded-lg overflow-hidden border border-gray-700 shadow-card">
+                <img
+                  src={post.media_url}
+                  alt="Post"
+                  className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                />
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>

@@ -84,7 +84,7 @@ export default function Feed() {
         .order('created_at', { ascending: false })
       
       if (error) {
-        console.error('Fehler beim Laden der Posts:', error.message || error)
+        console.error('Error loading posts:', error.message || error)
         setError(error.message || 'Failed to load posts')
       } else {
         console.log('Posts fetched:', data)
@@ -116,10 +116,10 @@ export default function Feed() {
     } catch (error: unknown) {
       // Type guard to check if error has a message property
       if (error instanceof Error) {
-        console.error('Exception beim Laden der Posts:', error.message)
+        console.error('Exception loading posts:', error.message)
         setError(error.message || 'Failed to load posts')
       } else {
-        console.error('Exception beim Laden der Posts:', error)
+        console.error('Exception loading posts:', error)
         setError('Failed to load posts')
       }
     } finally {
@@ -131,9 +131,9 @@ export default function Feed() {
     fetchPosts()
   }, [])
 
-  if (loading) return <p className="text-center p-4">Lade...</p>
+  if (loading) return <p className="text-center p-4 text-gray-400">Loading...</p>
   
-  if (error) return <p className="text-center p-4 text-red-500">Fehler beim Laden der Posts: {error}</p>
+  if (error) return <p className="text-center p-4 text-red-500">Error loading posts: {error}</p>
 
   return (
     <main className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 p-4">
@@ -142,8 +142,8 @@ export default function Feed() {
           <Post key={post.id} post={post} />
         ))
       ) : (
-        <div className="col-span-full text-center p-8">
-          <p className="text-gray-500">No posts available</p>
+        <div className="col-span-full text-center p-8 rounded-2xl bg-gray-800/50 border border-gray-700 shadow-card">
+          <p className="text-gray-400">No posts available</p>
         </div>
       )}
     </main>

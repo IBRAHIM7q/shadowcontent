@@ -76,7 +76,7 @@ export default function Stories() {
         .order('created_at', { ascending: false })
       
       if (error) {
-        console.error('Fehler bei Stories:', error.message || error)
+        console.error('Error fetching stories:', error.message || error)
       } else {
         // Handle the nested user data properly
         const storiesData: Story[] = await Promise.all(
@@ -126,16 +126,16 @@ export default function Stories() {
   
   return (
     <>
-      <div className="flex space-x-4 overflow-x-auto pb-4 p-4 bg-black border-b border-gray-800">
+      <div className="flex space-x-4 overflow-x-auto pb-4 p-4 bg-gray-900/50 border-b border-gray-800">
         {user && (
           <div className="flex flex-col items-center">
-            <div className="w-16 h-16 border-2 border-blue-500 rounded-full p-0.5">
+            <div className="w-16 h-16 border-2 border-green-500 rounded-full p-0.5">
               <img
-                src={user.avatar_url || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + user.username}
+                src={user.avatar_url || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + (user.username || 'user')}
                 alt="You"
                 className="w-full h-full rounded-full object-cover"
                 onError={(e) => {
-                  e.currentTarget.src = 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + user.username
+                  e.currentTarget.src = 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + (user.username || 'user')
                 }}
               />
             </div>
@@ -148,18 +148,18 @@ export default function Stories() {
             className="flex flex-col items-center cursor-pointer"
             onClick={() => handleStoryClick(index)}
           >
-            <div className="w-16 h-16 border-2 border-gradient rounded-full p-0.5 bg-gradient-to-r from-yellow-400 to-pink-600">
+            <div className="w-16 h-16 border-2 border-gradient rounded-full p-0.5 bg-gradient-to-r from-green-500 to-green-600">
               <img
                 src={story.users?.avatar_url || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + (story.users?.username || story.user_id || 'user')}
                 alt={story.users?.username || 'User'}
-                className="w-full h-full rounded-full object-cover bg-white"
+                className="w-full h-full rounded-full object-cover bg-gray-800"
                 onError={(e) => {
                   e.currentTarget.src = 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + (story.users?.username || story.user_id || 'user')
                 }}
               />
             </div>
             <span className="text-xs text-white mt-1 truncate w-16 text-center">
-              {story.users?.username || (story.user_id ? 'Loading...' : 'Gelöschter Nutzer')}
+              {story.users?.username || (story.user_id ? 'Loading...' : 'Deleted User')}
             </span>
           </div>
         ))}
