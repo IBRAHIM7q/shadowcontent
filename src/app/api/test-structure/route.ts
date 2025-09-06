@@ -1,9 +1,24 @@
-import { supabase } from '@/lib/supabase'
 import { NextResponse } from 'next/server'
+import { createBrowserClient } from '@supabase/ssr'
+
+// Function to create Supabase client only when needed
+function getSupabaseClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+  
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error('Missing Supabase environment variables')
+  }
+  
+  return createBrowserClient(supabaseUrl, supabaseAnonKey)
+}
 
 export async function GET() {
   try {
     console.log('Testing table structure...')
+    
+    // Only create the Supabase client when we actually need it
+    const supabase = getSupabaseClient()
     
     // Try to get information about the users table by querying it
     const { data, error } = await supabase

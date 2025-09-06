@@ -1,10 +1,25 @@
-import { supabase } from '@/lib/supabase'
 import { NextResponse } from 'next/server'
+import { createBrowserClient } from '@supabase/ssr'
+
+// Function to create Supabase client only when needed
+function getSupabaseClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+  
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error('Missing Supabase environment variables')
+  }
+  
+  return createBrowserClient(supabaseUrl, supabaseAnonKey)
+}
 
 export async function GET() {
   try {
     // Test the Supabase connection
     console.log('Testing Supabase connection...');
+    
+    // Only create the Supabase client when we actually need it
+    const supabase = getSupabaseClient()
     
     // Test authentication status
     const { data: { session }, error: sessionError } = await supabase.auth.getSession();
