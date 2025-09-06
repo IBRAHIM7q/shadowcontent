@@ -69,8 +69,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ 
       success: true, 
       signedUrl: signedUrlData.signedUrl,
-      publicUrl: publicUrlData.publicUrl,
-      expiresIn: signedUrlData.expiresIn
+      publicUrl: publicUrlData.publicUrl
     })
   } catch (err: unknown) {
     console.error('Exception in test-signed-url route:', err)

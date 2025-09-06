@@ -1,94 +1,78 @@
-// src/app/test-supabase/page.tsx
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 
-export default function TestSupabasePage() {
-  const [status, setStatus] = useState('')
-  const [details, setDetails] = useState<any>(null)
+interface TestResult {
+  success: boolean
+  message: string
+  data?: unknown
+}
 
-  const testConnection = async () => {
-    try {
-      setStatus('Testing connection...')
-      setDetails(null)
-      
-      // Test basic connection and authentication
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-      
-      if (sessionError) {
-        setStatus(`Session Error: ${sessionError.message}`)
-        setDetails(sessionError)
-        return
-      }
-      
-      setStatus(`Session Status: ${session ? 'Authenticated' : 'Not authenticated'}`)
-      
-      // Test users table access
-      setStatus('Testing users table access...')
-      const { data: usersData, error: usersError } = await supabase
-        .from('users')
-        .select('count')
-        .single()
-      
-      if (usersError) {
-        setStatus(`Users Table Error: ${usersError.message}`)
-        setDetails(usersError)
-        return
-      }
-      
-      setStatus(`Success: Users count = ${JSON.stringify(usersData)}`)
-      
-      // Test posts table access
-      setStatus('Testing posts table access...')
-      const { data: postsData, error: postsError } = await supabase
-        .from('posts')
-        .select('count')
-        .single()
-      
-      if (postsError) {
-        setStatus(`Posts Table Error: ${postsError.message}`)
-        setDetails(postsError)
-        return
-      }
-      
-      setStatus(`Success: Users count = ${JSON.stringify(usersData)}, Posts count = ${JSON.stringify(postsData)}`)
-    } catch (err) {
-      // Fix: Check if err is an Error instance before accessing message
-      const errorMessage = err instanceof Error ? err.message : String(err)
-      setStatus(`Exception: ${errorMessage}`)
-      setDetails(err)
-    }
-  }
+export default function TestSupabase() {
+  const [testResults, setTestResults] = useState<TestResult[]>([])
+  const [loading, setLoading] = useState(true)
 
-  // Run test automatically when page loads
   useEffect(() => {
-    testConnection()
+    const runTests = async () => {
+      const results: TestResult[] = []
+      
+      try {
+        // Test 1: Check if we can connect to Supabase
+        const { data, error } = await supabase
+          .from('users')
+          .select('id')
+          .limit(1)
+        
+        if (error) {
+          results.push({
+            success: false,
+            message: 'Failed to connect to Supabase',
+            data: error.message
+          })
+        } else {
+          results.push({
+            success: true,
+            message: 'Successfully connected to Supabase',
+            data: data
+          })
+        }
+      } catch (error) {
+        results.push({
+          success: false,
+          message: 'Exception during Supabase test',
+          data: error instanceof Error ? error.message : 'Unknown error'
+        })
+      } finally {
+        setLoading(false)
+        setTestResults(results)
+      }
+    }
+
+    runTests()
   }, [])
 
+  if (loading) return <div>Loading...</div>
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black text-white p-8">
-      <div className="max-w-2xl mx-auto">
-        <h1 className="text-2xl font-bold mb-4">Test Supabase Connection</h1>
-        <button 
-          onClick={testConnection}
-          className="bg-gradient-to-r from-purple-600 to-indigo-700 hover:from-purple-500 hover:to-indigo-600 text-white font-bold py-2 px-4 rounded-lg shadow-button mb-4"
-        >
-          Test Connection
-        </button>
-        <div className="mt-4 p-4 bg-gray-800 rounded-lg border border-gray-700 shadow-card">
-          <h2 className="text-lg font-semibold mb-2">Status:</h2>
-          <p className="mb-4">{status}</p>
-          
-          {details && (
-            <>
-              <h2 className="text-lg font-semibold mb-2">Details:</h2>
-              <pre className="bg-gray-900 p-4 rounded overflow-x-auto text-sm">
-                {JSON.stringify(details, null, 2)}
+    <div className="p-4">
+      <h1 className="text-2xl font-bold mb-4">Supabase Test</h1>
+      <div>
+        {testResults.map((result, index) => (
+          <div 
+            key={index} 
+            className={`border p-4 mb-4 rounded ${result.success ? 'bg-green-100 border-green-500' : 'bg-red-100 border-red-500'}`}
+          >
+            <p className={`font-semibold ${result.success ? 'text-green-800' : 'text-red-800'}`}>
+              {result.message}
+            </p>
+            {result.data !== undefined && result.data !== null && (
+              <pre className="mt-2 text-sm overflow-x-auto">
+                {String(result.data)}
               </pre>
-            </>
-          )}
-        </div>
+            )}
+          </div>
+        ))}
       </div>
     </div>
   )

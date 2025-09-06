@@ -9,8 +9,8 @@ export interface User {
   // Optional fields that might exist
   username?: string
   avatar_url?: string
-  // Add index signature to allow for unknown properties
-  [key: string]: any
+  // Add index signature to allow for unknown properties with specific types
+  [key: string]: string | number | boolean | undefined | null
 }
 
 interface AuthState {
@@ -98,7 +98,7 @@ export const useAuthStore = create<AuthState>()((set, get) => {
   })
   
   // Auth state change listener
-  const { data: { subscription: _subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+  const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
     console.log('Auth state changed:', _event, session ? 'User logged in' : 'User logged out');
     if (session?.user) {
       fetchUserData(session.user.id).then(userData => {

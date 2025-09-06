@@ -3,58 +3,40 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 
+interface User {
+  id: string
+  email: string
+  username: string
+  created_at: string
+}
+
 export default function TestUserData() {
-  const [userData, setUserData] = useState<any>(null)
-  const [error, setError] = useState<string | null>(null)
-  const [loading, setLoading] = useState<boolean>(true)
+  const [user, setUser] = useState<User | null>(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        setLoading(true)
-        console.log('Checking session...')
+        // First, get the current user
+        const { data: { session } } = await supabase.auth.getSession()
+        const userId = session?.user?.id
         
-        // Check current session
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-        console.log('Session data:', session)
-        
-        if (sessionError) {
-          console.error('Session error:', sessionError)
-          setError(`Session error: ${JSON.stringify(sessionError)}`)
-          setLoading(false)
-          return
+        if (!userId) {
+          throw new Error('No authenticated user')
         }
         
-        if (!session?.user) {
-          setError('No user is currently logged in')
-          setLoading(false)
-          return
-        }
-        
-        console.log('Fetching user data for ID:', session.user.id)
-        
-        // Try to fetch user data
+        // Then, fetch user data from the users table
         const { data, error } = await supabase
           .from('users')
-          .select('id, username, email, avatar_url, created_at')
-          .eq('id', session.user.id)
+          .select('*')
+          .eq('id', userId)
           .single()
         
-        if (error) {
-          console.error('Error fetching user data:', {
-            message: error.message,
-            code: error.code,
-            details: error.details,
-            hint: error.hint
-          })
-          setError(`Error fetching user data: ${JSON.stringify(error)}`)
-        } else {
-          console.log('User data fetched successfully:', data)
-          setUserData(data)
-        }
-      } catch (err) {
-        console.error('Exception fetching user data:', err)
-        setError(`Exception: ${err instanceof Error ? err.message : 'Unknown error'}`)
+        if (error) throw error
+        setUser(data as User)
+      } catch (error) {
+        console.error('Error fetching user data:', error)
+        setUser(null)
       } finally {
         setLoading(false)
       }
@@ -63,28 +45,20 @@ export default function TestUserData() {
     fetchUserData()
   }, [])
 
+  if (loading) return <div>Loading...</div>
+
   return (
     <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Test User Data Fetching</h1>
-      
-      {loading && <p>Loading...</p>}
-      
-      {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-          <p className="font-bold">Error:</p>
-          <pre className="whitespace-pre-wrap">{error}</pre>
+      <h1 className="text-2xl font-bold mb-4">User Data Test</h1>
+      {user ? (
+        <div className="border p-4 rounded">
+          <p><strong>ID:</strong> {user.id}</p>
+          <p><strong>Email:</strong> {user.email}</p>
+          <p><strong>Username:</strong> {user.username}</p>
+          <p><strong>Created At:</strong> {new Date(user.created_at).toLocaleString()}</p>
         </div>
-      )}
-      
-      {userData && (
-        <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
-          <p className="font-bold">User Data:</p>
-          <pre className="whitespace-pre-wrap">{JSON.stringify(userData, null, 2)}</pre>
-        </div>
-      )}
-      
-      {!loading && !error && !userData && (
-        <p>No data available</p>
+      ) : (
+        <p>No user data available</p>
       )}
     </div>
   )
