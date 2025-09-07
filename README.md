@@ -36,4 +36,9 @@ The easiest way to deploy your Next.js app is to use the [Vercel Platform](https
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
 # Shadow Social Media Platform
 
+A modern social media platform built with Next.js, Supabase, and Tailwind CSS.
+
+<!-- Updated for Netlify deployment fix -->
+# Shadow Social Media Platform
+
 Shadow is a modern social media platform built with Next.js, featuring a sleek dark theme with purple accents.
