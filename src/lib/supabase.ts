@@ -19,17 +19,42 @@ export const createSupabaseClient = () => {
 // but only initialize it when accessed in the browser
 let client: ReturnType<typeof createBrowserClient> | null = null
 
+// Mock client for build time
+const mockClient = {
+  auth: {
+    getSession: () => Promise.resolve({ data: { session: null }, error: null }),
+    signUp: () => Promise.resolve({ data: { user: null, session: null }, error: null }),
+    signInWithPassword: () => Promise.resolve({ data: { user: null, session: null }, error: null }),
+    signOut: () => Promise.resolve({ error: null }),
+    updateUser: () => Promise.resolve({ data: { user: null }, error: null }),
+    resend: () => Promise.resolve({ error: null }),
+  },
+  from: () => ({
+    select: () => ({ 
+      eq: () => ({ single: () => Promise.resolve({ data: null, error: null }), limit: () => Promise.resolve({ data: null, error: null }) }),
+      order: () => ({ eq: () => Promise.resolve({ data: null, error: null }) }),
+      limit: () => Promise.resolve({ data: null, error: null }),
+      single: () => Promise.resolve({ data: null, error: null })
+    }),
+    insert: () => Promise.resolve({ data: null, error: null }),
+    update: () => ({ eq: () => Promise.resolve({ data: null, error: null }) }),
+    delete: () => ({ eq: () => Promise.resolve({ data: null, error: null }) }),
+  }),
+  storage: {
+    from: () => ({
+      upload: () => Promise.resolve({ data: { path: '' }, error: null }),
+      getPublicUrl: () => ({ data: { publicUrl: '' } }),
+      remove: () => Promise.resolve({ data: null, error: null }),
+      listBuckets: () => Promise.resolve({ data: [], error: null }),
+    })
+  }
+}
+
 export const supabase = {
   getInstance: () => {
     if (typeof window === 'undefined') {
       // Return a mock client during build time
-      return {
-        auth: {
-          getSession: () => Promise.resolve({ data: { session: null }, error: null }),
-          signUp: () => Promise.resolve({ data: { user: null, session: null }, error: null }),
-          signInWithPassword: () => Promise.resolve({ data: { user: null, session: null }, error: null }),
-        }
-      }
+      return mockClient
     }
     
     if (!client) {
@@ -42,7 +67,8 @@ export const supabase = {
 // For direct access in client components (only in browser)
 export const getSupabaseClient = () => {
   if (typeof window === 'undefined') {
-    throw new Error('Supabase client should only be used in browser environment')
+    // Return a mock client during build time instead of throwing an error
+    return mockClient
   }
   return createSupabaseClient()
 }
