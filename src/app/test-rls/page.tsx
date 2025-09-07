@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
+import { getSupabaseClient } from '@/lib/supabase'
 
 interface Post {
   id: string
@@ -17,6 +17,9 @@ export default function TestRLS() {
   useEffect(() => {
     const fetchPosts = async () => {
       try {
+        // Get Supabase client instance
+        const supabase = getSupabaseClient()
+        
         const { data, error } = await supabase
           .from('posts')
           .select('*')

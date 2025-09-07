@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
+import { getSupabaseClient } from '@/lib/supabase'
 
 interface User {
   id: string
@@ -38,6 +38,9 @@ export default function TestSchema() {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        // Get Supabase client instance
+        const supabase = getSupabaseClient()
+        
         // Fetch users
         const { data: usersData, error: usersError } = await supabase
           .from('users')

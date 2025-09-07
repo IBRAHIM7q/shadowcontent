@@ -1,151 +1,68 @@
-'use client'  // ✅ Diese Zeile muss ganz oben stehen
-import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
+'use client'
+
+import { useEffect, useState, useCallback } from 'react'
 import Post from './Post'
+import { getSupabaseClient } from '@/lib/supabase'
 
-// Define types for our data
-interface User {
+interface PostData {
   id: string
-  username: string
-  email: string
-  avatar_url: string
-}
-
-interface PostType {
-  id: string
-  title: string
-  caption: string
-  media_url: string
   user_id: string
-  created_at: string
-  users: User | null
-}
-
-// Interface for the raw data from Supabase
-interface RawPostType {
-  id: string
-  title: string
-  caption: string
   media_url: string
-  user_id: string
+  title: string
   created_at: string
-  users: Array<{
-    id: string
-    username: string
-    email: string
-    avatar_url: string
-  }>
 }
 
 export default function Feed() {
-  const [posts, setPosts] = useState<PostType[]>([])
+  const [posts, setPosts] = useState<PostData[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
 
-  // Fetch user data for a specific user ID with proper return type
-  const fetchUserData = async (userId: string): Promise<User | null> => {
+  const fetchPosts = useCallback(async () => {
     try {
-      const { data, error } = await supabase
-        .from('users')
-        .select('id, username, email, avatar_url')
-        .eq('id', userId)
-        .single()
-        
-      if (error) {
-        console.error('Error fetching user data:', error.message || error)
-        return null
-      }
+      // Get Supabase client instance
+      const supabase = getSupabaseClient()
       
-      return data
-    } catch (error) {
-      console.error('Exception fetching user data:', error)
-      return null
-    }
-  }
-
-  const fetchPosts = async () => {
-    try {
-      console.log('Fetching posts...')
-      setLoading(true)
-      setError(null)
-      
-      // Fixed the relationship reference to use the correct foreign key
       const { data, error } = await supabase
         .from('posts')
-        .select(`
-          id,
-          title,
-          caption,
-          media_url,
-          user_id,
-          created_at,
-          users!posts_user_id_fkey (id, username, email, avatar_url)
-        `)
+        .select('*')
         .order('created_at', { ascending: false })
       
-      if (error) {
-        console.error('Error loading posts:', error.message || error)
-        setError(error.message || 'Failed to load posts')
-      } else {
-        console.log('Posts fetched:', data)
-        // Handle the nested user data properly
-        const postsData: PostType[] = await Promise.all(
-          (data as RawPostType[]).map(async (post: RawPostType) => {
-            // Extract the first user from the array or null if empty
-            let userData = post.users && post.users.length > 0 ? post.users[0] : null
-            
-            // If user data is missing but we have a user_id, fetch the user data
-            if (!userData && post.user_id) {
-              userData = await fetchUserData(post.user_id)
-            }
-            
-            return {
-              id: post.id,
-              title: post.title,
-              caption: post.caption,
-              media_url: post.media_url,
-              user_id: post.user_id,
-              created_at: post.created_at,
-              users: userData
-            }
-          })
-        )
-        
-        setPosts(postsData || [])
-      }
-    } catch (error: unknown) {
-      // Type guard to check if error has a message property
-      if (error instanceof Error) {
-        console.error('Exception loading posts:', error.message)
-        setError(error.message || 'Failed to load posts')
-      } else {
-        console.error('Exception loading posts:', error)
-        setError('Failed to load posts')
-      }
+      if (error) throw error
+      setPosts(data || [])
+    } catch (error) {
+      console.error('Error fetching posts:', error)
+      setPosts([])
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
   useEffect(() => {
     fetchPosts()
-  }, [])
+  }, [fetchPosts])
 
-  if (loading) return <p className="text-center p-4 text-gray-400">Loading...</p>
-  
-  if (error) return <p className="text-center p-4 text-red-500">Error loading posts: {error}</p>
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        {[...Array(3)].map((_, i) => (
+          <div key={i} className="bg-gray-800/50 backdrop-blur-lg rounded-2xl p-6 border border-gray-700 shadow-card animate-pulse">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-gray-700"></div>
+              <div className="h-4 bg-gray-700 rounded w-24"></div>
+            </div>
+            <div className="h-64 bg-gray-700 rounded-xl mb-4"></div>
+            <div className="h-4 bg-gray-700 rounded w-3/4 mb-2"></div>
+            <div className="h-4 bg-gray-700 rounded w-1/2"></div>
+          </div>
+        ))}
+      </div>
+    )
+  }
 
   return (
-    <main className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 p-4">
-      {posts.length > 0 ? (
-        posts.map(post => (
-          <Post key={post.id} post={post} />
-        ))
-      ) : (
-        <div className="col-span-full text-center p-8 rounded-2xl bg-gray-800/50 border border-gray-700 shadow-card">
-          <p className="text-gray-400">No posts available</p>
-        </div>
-      )}
-    </main>
+    <div className="space-y-6">
+      {posts.map(post => (
+        <Post key={post.id} post={post} />
+      ))}
+    </div>
   )
 }

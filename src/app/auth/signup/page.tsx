@@ -3,7 +3,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
+import { getSupabaseClient } from '@/lib/supabase'
 import Link from 'next/link'
 import { Eye, EyeOff } from 'lucide-react'
 
@@ -18,13 +18,17 @@ export default function SignUp() {
   const [requiresConfirmation, setRequiresConfirmation] = useState(false)
   const router = useRouter()
 
-const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {    e.preventDefault()
+const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {    
+  e.preventDefault()
     setLoading(true)
     setError('')
     setSuccess(false)
     setRequiresConfirmation(false)
 
     try {
+      // Get Supabase client instance
+      const supabase = getSupabaseClient()
+
       // First, try to sign up the user
       const { data, error: authError } = await supabase.auth.signUp({
         email,

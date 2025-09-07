@@ -1,541 +1,234 @@
 'use client'
+
 import { useState, useEffect } from 'react'
-import { useAuthStore } from '@/lib/store'
-import { supabase } from '@/lib/supabase'
+import { getSupabaseClient } from '@/lib/supabase'
+import { useAuthUser } from '@/lib/store'
 import Link from 'next/link'
 
-// Define types for our data
-interface User {
+interface PostProps {
+  post: {
+    id: string
+    user_id: string
+    media_url: string
+    title: string
+    created_at: string
+  }
+}
+
+interface UserData {
   id: string
   username: string
-  email: string
   avatar_url: string
 }
 
-interface PostType {
-  id: string
-  title: string
-  caption: string
-  media_url: string
-  user_id: string
-  created_at: string
-  users: User | null
-}
-
-// Add this interface for the raw comment data from Supabase
-interface RawComment {
-  id: string
-  text: string
-  user_id: string
-  users: Array<{
-    username: string
-  }>
-}
-
-interface Comment {
-  id: string
-  text: string
-  user_id: string
-  users: {
-    username: string
-  }
-}
-
-export default function Post({ post: initialPost }: { post: PostType }) {
-  const user = useAuthStore((state) => state.user) as User
-  const [post, setPost] = useState<PostType>(initialPost)
-  const [liked, setLiked] = useState(false)
+export default function Post({ post }: PostProps) {
+  const currentUser = useAuthUser()
+  const [userData, setUserData] = useState<UserData | null>(null)
   const [likes, setLikes] = useState(0)
-  const [comments, setComments] = useState<Comment[]>([])
-  const [commentCount, setCommentCount] = useState(0)
-  const [newComment, setNewComment] = useState('')
-  const [showComments, setShowComments] = useState(false)
-  
-  // Move all function declarations before useEffect hooks
-  const fetchLikes = async () => {
-    try {
-      const { count, error } = await supabase
-        .from('likes')
-        .select('*', { count: 'exact' })
-        .eq('post_id', post.id)
-        
-      if (error) {
-        console.error('Error fetching likes:', error.message || error)
-        return
-      }
-      
-      setLikes(count || 0)
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        console.error('Exception fetching likes:', error.message)
-      } else {
-        console.error('Exception fetching likes:', error)
-      }
-    }
-  }
-  
-  const fetchCommentCount = async () => {
-    try {
-      const { count, error } = await supabase
-        .from('comments')
-        .select('*', { count: 'exact' })
-        .eq('post_id', post.id)
-        
-      if (error) {
-        console.error('Error fetching comment count:', error.message || error)
-        return
-      }
-      
-      setCommentCount(count || 0)
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        console.error('Exception fetching comment count:', error.message)
-      } else {
-        console.error('Exception fetching comment count:', error)
-      }
-    }
-  }
-  
-  const checkIfLiked = async () => {
-    if (!user || !post?.id) return
-    try {
-      const { data, error } = await supabase
-        .from('likes')
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('post_id', post.id)
-        .single()
-        
-      if (error && error.code !== 'PGRST116') { // PGRST116 means no rows found
-        console.error('Error checking if liked:', error.message || error)
-      }
-      
-      setLiked(!!data)
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        console.error('Exception checking if liked:', error.message)
-      } else {
-        console.error('Exception checking if liked:', error)
-      }
-    }
-  }
-  
-  const fetchComments = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('comments')
-        .select('id, text, user_id, users(username)')
-        .eq('post_id', post.id)
-        .order('created_at', { ascending: true })
-        
-      if (error) {
-        console.error('Error fetching comments:', error.message || error)
-        return
-      }
-      
-      // Handle the nested user data properly
-      const commentsData: Comment[] = (data as RawComment[]).map((comment: RawComment) => ({
-        id: comment.id,
-        text: comment.text,
-        user_id: comment.user_id,
-        users: comment.users && comment.users.length > 0 
-          ? comment.users[0] 
-          : { username: 'Unknown' }
-      }))
-      
-      setComments(commentsData || [])
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        console.error('Exception fetching comments:', error.message)
-      } else {
-        console.error('Exception fetching comments:', error)
-      }
-    }
-  }
-  
-  // Fetch user data if it's missing
+  const [comments, setComments] = useState(0)
+  const [liked, setLiked] = useState(false)
+  const [loading, setLoading] = useState(true)
+
   const fetchUserData = async () => {
-    if (post.users) return // User data already exists
-    
     try {
+      // Get Supabase client instance
+      const supabase = getSupabaseClient()
+      
       const { data, error } = await supabase
         .from('users')
-        .select('id, username, email, avatar_url')
+        .select('id, username, avatar_url')
         .eq('id', post.user_id)
         .single()
-        
-      if (error) {
-        console.error('Error fetching user data:', error.message || error)
-        return
-      }
       
-      if (data) {
-        setPost(prevPost => ({
-          ...prevPost,
-          users: data
-        }))
-      }
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        console.error('Exception fetching user data:', error.message)
-      } else {
-        console.error('Exception fetching user data:', error)
-      }
+      if (error) throw error
+      setUserData(data)
+    } catch (error) {
+      console.error('Error fetching user data:', error)
     }
   }
-  
-  const toggleLike = async () => {
-    if (!user || !post?.id) return
+
+  const fetchLikes = async () => {
     try {
-      // Ensure user exists in database
-      const { data: userData, error: userError } = await supabase
-        .from('users')
-        .select('id')
-        .eq('id', user.id)
-        .single()
+      // Get Supabase client instance
+      const supabase = getSupabaseClient()
       
-      if (userError) {
-        // If user doesn't exist, create them
-        const { error: insertError } = await supabase
-          .from('users')
-          .insert({
-            id: user.id,
-            username: user.username || user.email?.split('@')[0] || 'User',
-            email: user.email
-          })
-        
-        if (insertError) {
-          console.error('Error creating user:', insertError.message || insertError)
-          return
-        }
-      }
+      const { count, error } = await supabase
+        .from('likes')
+        .select('*', { count: 'exact' })
+        .eq('post_id', post.id)
+      
+      if (error) throw error
+      setLikes(count || 0)
+    } catch (error) {
+      console.error('Error fetching likes:', error)
+    }
+  }
+
+  const fetchComments = async () => {
+    try {
+      // Get Supabase client instance
+      const supabase = getSupabaseClient()
+      
+      const { count, error } = await supabase
+        .from('comments')
+        .select('*', { count: 'exact' })
+        .eq('post_id', post.id)
+      
+      if (error) throw error
+      setComments(count || 0)
+    } catch (error) {
+      console.error('Error fetching comments:', error)
+    }
+  }
+
+  const checkIfLiked = async () => {
+    if (!currentUser) return
+    
+    try {
+      // Get Supabase client instance
+      const supabase = getSupabaseClient()
+      
+      const { data, error } = await supabase
+        .from('likes')
+        .select('id')
+        .eq('post_id', post.id)
+        .eq('user_id', currentUser.id)
+        .maybeSingle()
+      
+      if (error) throw error
+      setLiked(!!data)
+    } catch (error) {
+      console.error('Error checking if liked:', error)
+    }
+  }
+
+  const handleLike = async () => {
+    if (!currentUser) return
+    
+    try {
+      // Get Supabase client instance
+      const supabase = getSupabaseClient()
       
       if (liked) {
+        // Unlike
         const { error } = await supabase
           .from('likes')
           .delete()
-          .eq('user_id', user.id)
           .eq('post_id', post.id)
-          
-        if (error) {
-          console.error('Error unliking post:', error.message || error)
-          return
-        }
+          .eq('user_id', currentUser.id)
         
-        setLikes(likes - 1)
+        if (error) throw error
+        setLiked(false)
+        setLikes(prev => prev - 1)
       } else {
-        const { error } = await supabase.from('likes').insert({
-          user_id: user.id,
-          post_id: post.id,
-        })
-        
-        if (error) {
-          console.error('Error liking post:', error.message || error)
-          return
-        }
-        
-        setLikes(likes + 1)
-      }
-      setLiked(!liked)
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        console.error('Exception toggling like:', error.message)
-      } else {
-        console.error('Exception toggling like:', error)
-      }
-    }
-  }
-  
-  const addComment = async () => {
-    if (!newComment.trim() || !user || !post?.id) return
-    try {
-      // Ensure user exists in database
-      const { data: userData, error: userError } = await supabase
-        .from('users')
-        .select('id')
-        .eq('id', user.id)
-        .single()
-      
-      if (userError) {
-        // If user doesn't exist, create them
-        const { error: insertError } = await supabase
-          .from('users')
+        // Like
+        const { error } = await supabase
+          .from('likes')
           .insert({
-            id: user.id,
-            username: user.username || user.email?.split('@')[0] || 'User',
-            email: user.email
+            post_id: post.id,
+            user_id: currentUser.id
           })
         
-        if (insertError) {
-          console.error('Error creating user:', insertError.message || insertError)
-          return
-        }
+        if (error) throw error
+        setLiked(true)
+        setLikes(prev => prev + 1)
       }
-      
-      const { error } = await supabase.from('comments').insert({
-        user_id: user.id,
-        post_id: post.id,
-        text: newComment,
-      })
-      
-      if (error) {
-        console.error('Error adding comment:', error.message || error)
-        return
-      }
-      
-      setNewComment('')
-      fetchComments()
-      fetchCommentCount()
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        console.error('Exception adding comment:', error.message)
-      } else {
-        console.error('Exception adding comment:', error)
-      }
+    } catch (error) {
+      console.error('Error handling like:', error)
     }
   }
-  
-  // Add delete comment functionality
-  const deleteComment = async (commentId: string) => {
-    if (!user) return
-    
-    try {
-      const { error } = await supabase
-        .from('comments')
-        .delete()
-        .eq('id', commentId)
-        .eq('user_id', user.id) // Ensure user can only delete their own comments
-      
-      if (error) {
-        console.error('Error deleting comment:', error.message || error)
-        return
-      }
-      
-      fetchComments()
-      fetchCommentCount()
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        console.error('Exception deleting comment:', error.message)
-      } else {
-        console.error('Exception deleting comment:', error)
-      }
-    }
-  }
-  
-  // Add delete post functionality
-  const deletePost = async () => {
-    if (!user || post.user_id !== user.id) return
-    
-    const confirmed = window.confirm('Are you sure you want to delete this post? This action cannot be undone.')
-    if (!confirmed) return
-    
-    try {
-      // First delete associated likes and comments
-      await supabase.from('likes').delete().eq('post_id', post.id)
-      await supabase.from('comments').delete().eq('post_id', post.id)
-      
-      // Then delete the post
-      const { error } = await supabase
-        .from('posts')
-        .delete()
-        .eq('id', post.id)
-        .eq('user_id', user.id)
-      
-      if (error) {
-        console.error('Error deleting post:', error.message || error)
-        alert('Failed to delete post. Please try again.')
-        return
-      }
-      
-      // Refresh the page to reflect changes
-      window.location.reload()
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        console.error('Exception deleting post:', error.message)
-      } else {
-        console.error('Exception deleting post:', error)
-      }
-      alert('Failed to delete post. Please try again.')
-    }
-  }
-  
+
   useEffect(() => {
-    if (!post?.id) return
-    fetchLikes()
-    fetchComments()
-    fetchCommentCount()
-    checkIfLiked()
-    fetchUserData() // Fetch user data if missing
-  }, [post?.id, user])
-  
-  // Realtime: Live-Likes
-  useEffect(() => {
-    if (!post?.id) return
-    const channel = supabase
-      .channel(`likes-${post.id}`)
-      .on('postgres_changes', {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'likes',
-        filter: `post_id=eq.${post.id}`,
-      }, fetchLikes)
-      .on('postgres_changes', {
-        event: 'DELETE',
-        schema: 'public',
-        table: 'likes',
-        filter: `post_id=eq.${post.id}`,
-      }, fetchLikes)
-      .subscribe()
-    return () => {
-      supabase.removeChannel(channel)
+    const fetchData = async () => {
+      await Promise.all([
+        fetchUserData(),
+        fetchLikes(),
+        fetchComments(),
+        checkIfLiked()
+      ])
+      setLoading(false)
     }
-  }, [post?.id])
-  
-  // Realtime: Live-Comments
-  useEffect(() => {
-    if (!post?.id) return
-    const channel = supabase
-      .channel(`comments-${post.id}`)
-      .on('postgres_changes', {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'comments',
-        filter: `post_id=eq.${post.id}`,
-      }, fetchCommentCount)
-      .on('postgres_changes', {
-        event: 'DELETE',
-        schema: 'public',
-        table: 'comments',
-        filter: `post_id=eq.${post.id}`,
-      }, fetchCommentCount)
-      .subscribe()
-    return () => {
-      supabase.removeChannel(channel)
-    }
-  }, [post?.id])
-  
-  // Handle case where post data might be undefined
-  if (!post) {
-    return <div className="bg-gray-900 rounded-lg overflow-hidden border border-gray-800 p-4">Invalid post data</div>
+
+    fetchData()
+  }, [post.user_id, post.id, currentUser])
+
+  if (loading) {
+    return (
+      <div className="bg-gray-800/50 backdrop-blur-lg rounded-2xl p-6 border border-gray-700 shadow-card animate-pulse">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-10 h-10 rounded-full bg-gray-700"></div>
+          <div className="h-4 bg-gray-700 rounded w-24"></div>
+        </div>
+        <div className="h-64 bg-gray-700 rounded-xl mb-4"></div>
+        <div className="h-4 bg-gray-700 rounded w-3/4 mb-2"></div>
+        <div className="h-4 bg-gray-700 rounded w-1/2"></div>
+      </div>
+    )
   }
-  
+
   return (
-    <div className="bg-gray-900 rounded-lg overflow-hidden border border-gray-800 shadow-card">
-      {/* User Info */}
-      <div className="p-3 flex items-center gap-2 justify-between">
-        <div className="flex items-center gap-2">
-          {post.users?.id && post.users.id !== '' ? (
-            <Link href={`/profile/${post.users.id}`}>
-              <img
-                src={post.users.avatar_url || 'https://api.dicebear.com/7.x/avataaars/svg?seed=profile'}
-                alt="Avatar"
-                className="w-8 h-8 rounded-full"
-                onError={(e) => {
-                  e.currentTarget.src = 'https://api.dicebear.com/7.x/avataaars/svg?seed=profile'
-                }}
-              />
-            </Link>
-          ) : (
-            <div className="w-8 h-8 rounded-full bg-gray-700"></div>
-          )}
-          {post.users?.id && post.users.id !== '' ? (
-            <Link href={`/profile/${post.users.id}`} className="text-white font-medium text-sm">
-              {post.users.username || 'Unknown User'}
-            </Link>
-          ) : (
-            <span className="text-white font-medium text-sm">
-              {post.user_id ? 'Loading...' : 'Deleted User'}
+    <div className="bg-gray-800/50 backdrop-blur-lg rounded-2xl p-6 border border-gray-700 hover:border-gray-600 transition-all duration-300 shadow-card">
+      {/* Post header */}
+      <div className="flex items-center gap-3 mb-4">
+        {userData?.avatar_url ? (
+          <img 
+            src={userData.avatar_url} 
+            alt={userData.username} 
+            className="w-10 h-10 rounded-full object-cover"
+          />
+        ) : (
+          <div className="w-10 h-10 rounded-full bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-center">
+            <span className="text-white font-bold">
+              {userData?.username?.charAt(0).toUpperCase() || 'U'}
             </span>
-          )}
-        </div>
-        
-        {/* Delete button for post owner */}
-        {user && post.user_id === user.id && (
-          <button 
-            onClick={deletePost}
-            className="text-gray-400 hover:text-red-500 transition-colors"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
-            </svg>
-          </button>
-        )}
-      </div>
-      {/* Media */}
-      <img
-        src={post.media_url || '/images/placeholder.png'}
-        alt="Post"
-        className="w-full aspect-video object-cover cursor-pointer"
-        onError={(e) => {
-          // If the image fails to load, try to get a signed URL as fallback
-          console.log('Image failed to load, attempting to get signed URL')
-          e.currentTarget.src = '/images/placeholder.png'
-        }}
-      />
-      {/* Actions */}
-      <div className="p-3 space-y-2">
-        <div className="flex items-center gap-4">
-          <button onClick={toggleLike} className="text-2xl" disabled={!user}>
-            {liked ? '❤️' : '🤍'}
-          </button>
-          <button onClick={() => setShowComments(!showComments)} className="text-white">💬</button>
-        </div>
-        <div className="flex gap-4">
-          <p className="text-white text-sm"><strong>{likes}</strong> Likes</p>
-          <p className="text-white text-sm"><strong>{commentCount}</strong> Comments</p>
-        </div>
-        <p className="text-white"><strong>{post.users?.username || 'Unknown'}:</strong> {post.title || 'No title'}</p>
-        {post.caption && <p className="text-gray-300 text-sm">{post.caption}</p>}
-        {post.created_at && (
-          <p className="text-gray-500 text-xs">
-            {new Date(post.created_at).toLocaleDateString()}
-          </p>
-        )}
-      </div>
-      {/* Comments */}
-      {showComments && (
-        <div className="p-3 border-t border-gray-800 bg-gray-800/50">
-          {comments.length === 0 ? (
-            <p className="text-gray-500 text-sm">No comments</p>
-          ) : (
-            comments.map((c) => (
-              <div key={c.id} className="flex items-start gap-2 mb-2">
-                <p className="text-sm flex-1">
-                  <strong>{c.users?.username || 'Unknown'}:</strong> {c.text || ''}
-                </p>
-                {user && c.user_id === user.id && (
-                  <button 
-                    onClick={() => deleteComment(c.id)}
-                    className="text-gray-400 hover:text-red-500 transition-colors"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                    </svg>
-                  </button>
-                )}
-              </div>
-            ))
-          )}
-          <div className="flex gap-2 mt-2">
-            <input
-              type="text"
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-              placeholder="Add a comment..."
-              className="flex-1 px-3 py-1 bg-gray-800 text-white rounded text-sm shadow-input"
-              onKeyPress={(e) => e.key === 'Enter' && addComment()}
-              disabled={!user}
-            />
-            <button
-              onClick={addComment}
-              className="bg-gradient-to-r from-green-600 to-green-700 text-black px-3 py-1 rounded text-sm shadow-button"
-              disabled={!user || !newComment.trim()}
-            >
-              Send
-            </button>
           </div>
+        )}
+        <div>
+          <Link href={`/profile/${post.user_id}`} className="font-semibold hover:text-green-400 transition-colors">
+            {userData?.username || 'User'}
+          </Link>
+          <p className="text-gray-400 text-sm">
+            {post.created_at ? new Date(post.created_at).toLocaleDateString() : 'Unknown date'}
+          </p>
         </div>
+      </div>
+
+      {/* Post media */}
+      <div className="rounded-xl overflow-hidden mb-4">
+        <img 
+          src={post.media_url} 
+          alt={post.title} 
+          className="w-full h-auto object-cover"
+        />
+      </div>
+
+      {/* Post title */}
+      {post.title && (
+        <p className="mb-4">{post.title}</p>
       )}
+
+      {/* Post actions */}
+      <div className="flex items-center gap-4 pt-2 border-t border-gray-700">
+        <button 
+          onClick={handleLike}
+          className={`flex items-center gap-2 ${liked ? 'text-red-500' : 'text-gray-400 hover:text-red-500'} transition-colors`}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill={liked ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+          </svg>
+          <span>{likes}</span>
+        </button>
+        
+        <Link 
+          href={`/post/${post.id}`} 
+          className="flex items-center gap-2 text-gray-400 hover:text-green-400 transition-colors"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+          </svg>
+          <span>{comments}</span>
+        </Link>
+      </div>
     </div>
   )
 }

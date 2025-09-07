@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
+import { getSupabaseClient } from '@/lib/supabase'
 
 interface UserData {
   id: string
@@ -16,6 +16,9 @@ export default function TestAuth() {
   useEffect(() => {
     const checkUser = async () => {
       try {
+        // Get Supabase client instance
+        const supabase = getSupabaseClient()
+        
         const { data: { session } } = await supabase.auth.getSession()
         if (session?.user) {
           setUser({
@@ -34,7 +37,12 @@ export default function TestAuth() {
       }
     }
 
-    checkUser()
+    // Only run in browser environment
+    if (typeof window !== 'undefined') {
+      checkUser()
+    } else {
+      setLoading(false)
+    }
   }, [])
 
   if (loading) return <div>Loading...</div>
