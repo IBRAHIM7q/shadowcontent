@@ -3,8 +3,20 @@
 import { useEffect, useState } from 'react'
 import { getSupabaseClient } from '@/lib/supabase'
 
+// Define proper types for our data
+interface TestResultData {
+  session?: string;
+  usersSample?: Array<{ id: string }>;
+}
+
+interface TestResult {
+  success: boolean;
+  data?: TestResultData;
+  error?: string;
+}
+
 export default function TestSupabase() {
-  const [result, setResult] = useState<{ success: boolean; data?: any; error?: string } | null>(null)
+  const [result, setResult] = useState<TestResult | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {

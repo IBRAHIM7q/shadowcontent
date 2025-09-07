@@ -1,5 +1,6 @@
 // src/lib/supabase.ts
 import { createBrowserClient } from '@supabase/ssr'
+import { SupabaseClient } from '@supabase/supabase-js'
 
 // Create a function that initializes the Supabase client only when called
 export const createSupabaseClient = () => {
@@ -19,8 +20,48 @@ export const createSupabaseClient = () => {
 // but only initialize it when accessed in the browser
 let client: ReturnType<typeof createBrowserClient> | null = null
 
+// Define types for our mock client
+interface MockClient {
+  auth: {
+    getSession: () => Promise<{ data: { session: null }; error: null }>;
+    signUp: () => Promise<{ data: { user: null; session: null }; error: null }>;
+    signInWithPassword: () => Promise<{ data: { user: null; session: null }; error: null }>;
+    signOut: () => Promise<{ error: null }>;
+    updateUser: () => Promise<{ data: { user: null }; error: null }>;
+    resend: () => Promise<{ error: null }>;
+  };
+  from: (table: string) => {
+    select: (columns?: string) => {
+      eq: (column: string, value: any) => { 
+        single: () => Promise<{ data: null; error: null }>;
+        limit: (count: number) => Promise<{ data: null; error: null }>;
+      };
+      order: (column: string, options: { ascending: boolean }) => {
+        eq: (column: string, value: any) => Promise<{ data: null; error: null }>;
+      };
+      limit: (count: number) => Promise<{ data: null; error: null }>;
+      single: () => Promise<{ data: null; error: null }>;
+    };
+    insert: (data: any) => Promise<{ data: null; error: null }>;
+    update: (data: any) => {
+      eq: (column: string, value: any) => Promise<{ data: null; error: null }>;
+    };
+    delete: () => {
+      eq: (column: string, value: any) => Promise<{ data: null; error: null }>;
+    };
+  };
+  storage: {
+    from: (bucket: string) => {
+      upload: (path: string, file: any, options?: any) => Promise<{ data: { path: string }; error: null }>;
+      getPublicUrl: (path: string) => { data: { publicUrl: string } };
+      remove: (paths: string[]) => Promise<{ data: null; error: null }>;
+      listBuckets: () => Promise<{ data: any[]; error: null }>;
+    };
+  };
+}
+
 // Mock client for build time
-const mockClient = {
+const mockClient: MockClient = {
   auth: {
     getSession: () => Promise.resolve({ data: { session: null }, error: null }),
     signUp: () => Promise.resolve({ data: { user: null, session: null }, error: null }),
@@ -50,7 +91,11 @@ const mockClient = {
   }
 }
 
-export const supabase = {
+interface SupabaseInstance {
+  getInstance: () => MockClient | ReturnType<typeof createBrowserClient>;
+}
+
+export const supabase: SupabaseInstance = {
   getInstance: () => {
     if (typeof window === 'undefined') {
       // Return a mock client during build time
@@ -62,7 +107,7 @@ export const supabase = {
     }
     return client
   }
-} as any
+}
 
 // For direct access in client components (only in browser)
 export const getSupabaseClient = () => {
