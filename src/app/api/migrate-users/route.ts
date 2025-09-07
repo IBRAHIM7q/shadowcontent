@@ -1,12 +1,37 @@
-import { createServiceRoleClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { createServerClient, type CookieOptions } from '@supabase/ssr'
+
+// Function to create service role client only when needed
+function getServiceRoleClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+  
+  if (!supabaseUrl || !supabaseServiceKey) {
+    throw new Error('Missing Supabase environment variables')
+  }
+  
+  // Create a minimal client for service role operations
+  return createServerClient(supabaseUrl, supabaseServiceKey, {
+    cookies: {
+      get() {
+        return null
+      },
+      set() {
+        // no-op
+      },
+      remove() {
+        // no-op
+      },
+    },
+  })
+}
 
 export async function POST() {
   try {
     console.log('Running users table migration...')
     
-    // Create a service role client (has admin privileges)
-    const supabase = createServiceRoleClient()
+    // Only create the Supabase client when we actually need it
+    const supabase = getServiceRoleClient()
     
     // Check if the users table exists
     const { data: tables, error: tablesError } = await supabase
