@@ -8,8 +8,9 @@ import { createBrowserClient } from '@supabase/ssr'
 
 // Function to create Supabase client only when needed
 function getSupabaseClient() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+  // Only access environment variables at runtime, not at module load time
+  const supabaseUrl = typeof window !== 'undefined' ? process.env.NEXT_PUBLIC_SUPABASE_URL || '' : ''
+  const supabaseAnonKey = typeof window !== 'undefined' ? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '' : ''
   
   if (!supabaseUrl || !supabaseAnonKey) {
     throw new Error('Missing Supabase environment variables')
@@ -30,15 +31,18 @@ export default function ResetPassword() {
   const router = useRouter()
 
   useEffect(() => {
-    // Get the token from the URL hash
-    const hash = window.location.hash.substring(1)
-    const params = new URLSearchParams(hash)
-    const token = params.get('token')
-    
-    if (token) {
-      setToken(token)
-    } else {
-      setError('Invalid password reset link. Please request a new one.')
+    // Only run this effect on the client side
+    if (typeof window !== 'undefined') {
+      // Get the token from the URL hash
+      const hash = window.location.hash.substring(1)
+      const params = new URLSearchParams(hash)
+      const token = params.get('token')
+      
+      if (token) {
+        setToken(token)
+      } else {
+        setError('Invalid password reset link. Please request a new one.')
+      }
     }
   }, [])
 
