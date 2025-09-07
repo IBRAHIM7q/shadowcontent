@@ -2,8 +2,20 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
+import { createBrowserClient } from '@supabase/ssr'
+
+// Function to create Supabase client only when needed
+function getSupabaseClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+  
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error('Missing Supabase environment variables')
+  }
+  
+  return createBrowserClient(supabaseUrl, supabaseAnonKey)
+}
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('')
@@ -19,6 +31,9 @@ export default function ForgotPassword() {
     setError('')
 
     try {
+      // Create the Supabase client only when needed
+      const supabase = getSupabaseClient()
+      
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${location.origin}/auth/reset-password`,
       })

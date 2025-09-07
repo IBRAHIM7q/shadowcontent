@@ -2,9 +2,21 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
 import { Eye, EyeOff } from 'lucide-react'
+import { createBrowserClient } from '@supabase/ssr'
+
+// Function to create Supabase client only when needed
+function getSupabaseClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+  
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error('Missing Supabase environment variables')
+  }
+  
+  return createBrowserClient(supabaseUrl, supabaseAnonKey)
+}
 
 export default function ResetPassword() {
   const [password, setPassword] = useState('')
@@ -49,6 +61,9 @@ export default function ResetPassword() {
     }
 
     try {
+      // Create the Supabase client only when needed
+      const supabase = getSupabaseClient()
+      
       // Update the password directly
       const { error: updateError } = await supabase.auth.updateUser({ password })
 
