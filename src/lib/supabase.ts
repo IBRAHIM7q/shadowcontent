@@ -21,20 +21,30 @@ export const createSupabaseClient = () => {
 let client: ReturnType<typeof createBrowserClient> | null = null
 
 // Define types for our mock client
-interface MockClient {
-  auth: {
-    getSession: () => Promise<{ data: { session: null }; error: null }>;
-    signUp: () => Promise<{ data: { user: null; session: null }; error: null }>;
-    signInWithPassword: () => Promise<{ data: { user: null; session: null }; error: null }>;
-    signOut: () => Promise<{ error: null }>;
-    updateUser: () => Promise<{ data: { user: null }; error: null }>;
-    resend: () => Promise<{ error: null }>;
+interface MockAuth {
+  getSession: () => Promise<{ data: { session: null }; error: null }>;
+  signUp: (credentials: { email: string; password: string; options?: any }) => Promise<{ data: { user: null; session: null }; error: null }>;
+  signInWithPassword: (credentials: { email: string; password: string }) => Promise<{ data: { user: null; session: null }; error: null }>;
+  signOut: () => Promise<{ error: null }>;
+  updateUser: (attributes: any) => Promise<{ data: { user: null }; error: null }>;
+  resend: (params: { type: string; email: string }) => Promise<{ error: null }>;
+}
+
+interface MockStorage {
+  from: (bucket: string) => {
+    upload: (path: string, file: any, options?: any) => Promise<{ data: { path: string }; error: null }>;
+    getPublicUrl: (path: string) => { data: { publicUrl: string } };
+    remove: (paths: string[]) => Promise<{ data: null; error: null }>;
+    listBuckets: () => Promise<{ data: any[]; error: null }>;
   };
+}
+
+interface MockDatabase {
   from: (table: string) => {
     select: (columns?: string) => {
       eq: (column: string, value: any) => { 
         single: () => Promise<{ data: null; error: null }>;
-        limit: (count: number) => Promise<{ data: null; error: null }>;
+        limit: () => Promise<{ data: null; error: null }>;
       };
       order: (column: string, options: { ascending: boolean }) => {
         eq: (column: string, value: any) => Promise<{ data: null; error: null }>;
@@ -50,14 +60,12 @@ interface MockClient {
       eq: (column: string, value: any) => Promise<{ data: null; error: null }>;
     };
   };
-  storage: {
-    from: (bucket: string) => {
-      upload: (path: string, file: any, options?: any) => Promise<{ data: { path: string }; error: null }>;
-      getPublicUrl: (path: string) => { data: { publicUrl: string } };
-      remove: (paths: string[]) => Promise<{ data: null; error: null }>;
-      listBuckets: () => Promise<{ data: any[]; error: null }>;
-    };
-  };
+}
+
+interface MockClient {
+  auth: MockAuth;
+  from: MockDatabase['from'];
+  storage: MockStorage;
 }
 
 // Mock client for build time
@@ -70,7 +78,7 @@ const mockClient: MockClient = {
     updateUser: () => Promise.resolve({ data: { user: null }, error: null }),
     resend: () => Promise.resolve({ error: null }),
   },
-  from: () => ({
+  from: (() => ({
     select: () => ({ 
       eq: () => ({ single: () => Promise.resolve({ data: null, error: null }), limit: () => Promise.resolve({ data: null, error: null }) }),
       order: () => ({ eq: () => Promise.resolve({ data: null, error: null }) }),
@@ -80,7 +88,7 @@ const mockClient: MockClient = {
     insert: () => Promise.resolve({ data: null, error: null }),
     update: () => ({ eq: () => Promise.resolve({ data: null, error: null }) }),
     delete: () => ({ eq: () => Promise.resolve({ data: null, error: null }) }),
-  }),
+  })) as MockDatabase['from'],
   storage: {
     from: () => ({
       upload: () => Promise.resolve({ data: { path: '' }, error: null }),
