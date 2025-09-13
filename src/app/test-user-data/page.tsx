@@ -26,7 +26,7 @@ export default function TestUserData() {
         }
         
         // Then, fetch user data from the users table
-        const { data, error } = await supabase
+        const { data, error } = await supabase.getInstance()
           .from('users')
           .select('*')
           .eq('id', userId)

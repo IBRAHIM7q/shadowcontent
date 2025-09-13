@@ -43,7 +43,7 @@ export default function Profile() {
     
     try {
       console.log('Fetching user data for ID:', user.id);
-      const { data, error } = await supabase
+      const { data, error } = await supabase.getInstance()
         .from('users')
         .select('id, username, email, avatar_url, created_at')
         .eq('id', user.id)
@@ -75,7 +75,7 @@ export default function Profile() {
   const fetchUserPosts = async () => {
     if (!user) return
     try {
-      const { data, error } = await supabase
+      const { data, error } = await supabase.getInstance()
         .from('posts')
         .select('id, media_url, title, created_at')
         .eq('user_id', user.id)
@@ -107,7 +107,7 @@ export default function Profile() {
 
     try {
       // Update username in users table
-      const { error: updateError } = await supabase
+      const { error: updateError } = await supabase.getInstance()
         .from('users')
         .update({ username: newUsername })
         .eq('id', user.id)
@@ -148,7 +148,7 @@ export default function Profile() {
       // Upload file to Supabase storage
       const fileExtension = file.name.split('.').pop()
       const fileName = `${user.id}/avatar_${Date.now()}.${fileExtension}`
-      const { error: uploadError } = await supabase.storage
+      const { error: uploadError } = await supabase.getInstance().storage
         .from('avatars')
         .upload(fileName, file, {
           upsert: true
@@ -160,7 +160,7 @@ export default function Profile() {
       }
 
       // Get public URL
-      const { data: { publicUrl } } = supabase.storage
+      const { data: { publicUrl } } = supabase.getInstance().storage
         .from('avatars')
         .getPublicUrl(fileName)
 
@@ -168,7 +168,7 @@ export default function Profile() {
       console.log('Avatar public URL:', publicUrl)
 
       // Update user record with new avatar URL
-      const { error: updateError } = await supabase
+      const { error: updateError } = await supabase.getInstance()
         .from('users')
         .update({ avatar_url: publicUrl })
         .eq('id', user.id)
@@ -211,11 +211,11 @@ export default function Profile() {
     
     try {
       // First delete associated likes and comments
-      await supabase.from('likes').delete().eq('post_id', postId)
-      await supabase.from('comments').delete().eq('post_id', postId)
+      await supabase.getInstance().from('likes').delete().eq('post_id', postId)
+      await supabase.getInstance().from('comments').delete().eq('post_id', postId)
       
       // Then delete the post
-      const { error } = await supabase
+      const { error } = await supabase.getInstance()
         .from('posts')
         .delete()
         .eq('id', postId)

@@ -26,7 +26,7 @@ export default function FollowersPage() {
   const fetchFollowers = async () => {
     setLoading(true)
     try {
-      const { data, error } = await supabase
+      const { data, error } = await supabase.getInstance()
         .from('follows')
         .select(`
           follower_id,
@@ -40,7 +40,7 @@ export default function FollowersPage() {
 
       if (error) console.error(error)
        
-      else setFollowers(data?.flatMap((f) => f.users) || []) 
+      else setFollowers(data?.flatMap((f: Follower) => f.users) || []) 
    } catch (err) {
       console.error(err)
     } finally {

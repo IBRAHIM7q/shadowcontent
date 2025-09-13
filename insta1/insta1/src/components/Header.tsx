@@ -71,7 +71,7 @@ export default function Header() {
                   <button
                     onClick={async () => {
                       try {
-                        const { error } = await supabase.auth.signOut()
+                        const { error } = await supabase.getInstance().auth.signOut()
                         if (error) {
                           console.error('Error signing out:', error)
                         } else {
@@ -154,7 +154,7 @@ export default function Header() {
             <button 
               onClick={async () => {
                 try {
-                  const { error } = await supabase.auth.signOut()
+                  const { error } = await supabase.getInstance().auth.signOut()
                   if (error) {
                     console.error('Error signing out:', error)
                   } else {

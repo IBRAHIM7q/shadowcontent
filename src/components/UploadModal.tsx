@@ -136,7 +136,7 @@ export default function UploadModal({ onClose }: UploadModalProps) {
 
       if (isStory) {
         // Insert into stories table
-        const { error: dbError } = await supabase.from('stories').insert({
+        const { error: dbError } = await supabase.getInstance().from('stories').insert({
           user_id: user.id,
           media_url: mediaUrl,
           media_type: file!.type.startsWith('image') ? 'image' : 'video',
@@ -150,7 +150,7 @@ export default function UploadModal({ onClose }: UploadModalProps) {
         }
       } else {
         // Insert into posts table
-        const { error: dbError } = await supabase.from('posts').insert({
+        const { error: dbError } = await supabase.getInstance().from('posts').insert({
           user_id: user.id,
           title,
           caption,

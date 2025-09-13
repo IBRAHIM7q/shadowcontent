@@ -80,7 +80,7 @@ export const useAuthStore = create<AuthState>()((set) => {
   }
   
   // Check for existing session
-  supabase.auth.getSession().then(async ({ data: { session } }) => {
+  supabase.getInstance().auth.getSession().then(async ({ data: { session } }) => {
     console.log('Session check result:', session ? 'User logged in' : 'No user logged in');
     if (session?.user) {
       console.log('Fetching user data for session user:', session.user.id);
@@ -98,7 +98,7 @@ export const useAuthStore = create<AuthState>()((set) => {
   })
   
   // Auth state change listener
-  supabase.auth.onAuthStateChange((_event, session) => {
+  supabase.getInstance().auth.onAuthStateChange((_event, session) => {
     console.log('Auth state changed:', _event, session ? 'User logged in' : 'User logged out');
     if (session?.user) {
       fetchUserData(session.user.id).then(userData => {
@@ -121,7 +121,7 @@ export const useAuthStore = create<AuthState>()((set) => {
     setUser: (user) => set({ user }),
     setLoading: (loading) => set({ loading }),
     signOut: async () => {
-      await supabase.auth.signOut()
+      await supabase.getInstance().auth.signOut()
       set({ user: null, loading: false })
     },
   }
