@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createServerClient, type CookieOptions } from '@supabase/ssr'
+import { createServerClient } from '@supabase/ssr'
 
 // Function to create service role client only when needed
 function getServiceRoleClient() {

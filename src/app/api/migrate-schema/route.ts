@@ -1,4 +1,3 @@
-import { createServiceRoleClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 
 // This is a conceptual migration - in practice, you would run this in the Supabase SQL editor

@@ -128,6 +128,7 @@ export default function Header() {
               className="flex items-center gap-3 w-full p-2 rounded-xl hover:bg-gray-800 transition-colors"
             >
               {user.avatar_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
                 <img 
                   src={user.avatar_url} 
                   alt={user.username} 
@@ -203,6 +204,7 @@ export default function Header() {
       <button
         className="md:hidden absolute bottom-4 right-4 w-12 h-12 rounded-full bg-gray-800 border border-gray-700 flex items-center justify-center"
         onClick={() => setIsMobileMenuOpen(true)}
+        aria-label="Open menu"
       >
         <Menu size={24} />
       </button>
@@ -213,7 +215,7 @@ export default function Header() {
           <div className="fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-800 rounded-t-2xl p-4">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-bold">Menu</h2>
-              <button onClick={() => setIsMobileMenuOpen(false)}>
+              <button onClick={() => setIsMobileMenuOpen(false)} aria-label="Close menu">
                 <X size={24} />
               </button>
             </div>

@@ -44,6 +44,7 @@ export default function Home() {
           <div className="flex flex-col items-center justify-center min-h-screen px-4 py-12">
             <div className="max-w-2xl w-full bg-gray-800/50 backdrop-blur-lg rounded-3xl p-8 md:p-12 border border-gray-700 shadow-card text-center md:ml-64">
               <div className="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-8">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img 
                   src="/images/shadow-logo.png" 
                   alt="Shadow Logo" 

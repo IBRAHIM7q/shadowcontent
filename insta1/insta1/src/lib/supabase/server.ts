@@ -1,5 +1,5 @@
 // src/lib/supabase/server.ts
-import { createServerClient, type CookieOptions } from '@supabase/ssr'
+import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 
 /**
@@ -17,16 +17,16 @@ export async function createServerSupabaseClient() {
         get(name: string) {
           return cookieStore.get(name)?.value
         },
-        set(name: string, value: string, options: CookieOptions) {
+        set(name: string, value: string, options: unknown) {
           try {
-            cookieStore.set({ name, value, ...options })
+            cookieStore.set({ name, value, ...options as Record<string, unknown> })
           } catch {
             // Ignorieren: set() wird im Server Component Kontext geblockt
           }
         },
-        remove(name: string, options: CookieOptions) {
+        remove(name: string, options: unknown) {
           try {
-            cookieStore.delete({ name, ...options })
+            cookieStore.delete({ name, ...options as Record<string, unknown> })
           } catch {
             // Ignorieren: delete() wird im Server Component Kontext geblockt
           }

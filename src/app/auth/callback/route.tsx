@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
-import { createServerClient, type CookieOptions } from '@supabase/ssr'
+import { createServerClient } from '@supabase/ssr'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 
 export async function GET(request: NextRequest) {
@@ -28,12 +28,12 @@ export async function GET(request: NextRequest) {
             get(name: string) {
               return cookieStore.get(name)?.value;
             },
-            set(name: string, value: string, options: CookieOptions) {
+            set(name: string, value: string) {
               try {
-                cookieStore.set(name, value, options)
+                cookieStore.set(name, value)
               } catch {}
             },
-            remove(name: string, options: CookieOptions) {
+            remove(name: string) {
               try {
                 cookieStore.delete(name)
               } catch {}

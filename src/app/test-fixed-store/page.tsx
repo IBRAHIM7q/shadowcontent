@@ -42,7 +42,7 @@ export default function TestFixedStore() {
     checkStore()
   }, [])
 
-  if (loading) return <div>Loading...</div>
+  if (loading) return <div className="p-4">Loading...</div>
 
   return (
     <div className="p-4">

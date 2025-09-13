@@ -110,7 +110,7 @@ export default function Stories() {
   useEffect(() => {
     if (!user) return
     fetchStories()
-  }, [user])
+  }, [user, fetchStories])
   
   // Add a function to handle story click
   const handleStoryClick = (index: number) => {
@@ -130,6 +130,7 @@ export default function Stories() {
         {user && (
           <div className="flex flex-col items-center">
             <div className="w-16 h-16 border-2 border-green-500 rounded-full p-0.5">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={user.avatar_url || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + (user.username || 'user')}
                 alt="You"
@@ -149,6 +150,7 @@ export default function Stories() {
             onClick={() => handleStoryClick(index)}
           >
             <div className="w-16 h-16 border-2 border-gradient rounded-full p-0.5 bg-gradient-to-r from-green-500 to-green-600">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={story.users?.avatar_url || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + (story.users?.username || story.user_id || 'user')}
                 alt={story.users?.username || 'User'}

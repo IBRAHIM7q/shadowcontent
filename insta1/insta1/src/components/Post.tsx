@@ -188,7 +188,7 @@ export default function Post({ post: initialPost }: { post: PostType }) {
     if (!user || !post?.id) return
     try {
       // Ensure user exists in database
-      const { data: userData, error: userError } = await supabase
+      const { error: userError } = await supabase
         .from('users')
         .select('id')
         .eq('id', user.id)
@@ -250,7 +250,7 @@ export default function Post({ post: initialPost }: { post: PostType }) {
     if (!newComment.trim() || !user || !post?.id) return
     try {
       // Ensure user exists in database
-      const { data: userData, error: userError } = await supabase
+      const { error: userError } = await supabase
         .from('users')
         .select('id')
         .eq('id', user.id)

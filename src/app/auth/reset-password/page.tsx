@@ -94,6 +94,7 @@ export default function ResetPassword() {
         <div className="text-center">
           <div className="flex justify-center mb-4">
             <div className="w-16 h-16 rounded-full flex items-center justify-center">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img 
                 src="/images/shadow-logo.png" 
                 alt="Shadow Logo" 

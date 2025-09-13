@@ -157,7 +157,7 @@ export default function StoryViewer({ storyId, stories, currentIndex, onClose, o
         clearInterval(progressInterval.current)
       }
     }
-  }, [storyId])
+  }, [storyId, fetchStory])
 
   useEffect(() => {
     if (story && story.media_type === 'video' && videoRef.current) {
@@ -252,6 +252,7 @@ export default function StoryViewer({ storyId, stories, currentIndex, onClose, o
 
       {/* User info */}
       <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-10 flex items-center gap-2">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={story.users?.avatar_url || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + (story.users?.username || story.user_id || 'user')}
           alt={story.users?.username || 'User'}
@@ -269,6 +270,7 @@ export default function StoryViewer({ storyId, stories, currentIndex, onClose, o
       <button 
         onClick={onClose}
         className="absolute top-4 right-4 text-white z-10 bg-black/50 rounded-full p-1"
+        aria-label="Close story viewer"
       >
         <X size={24} />
       </button>
@@ -278,6 +280,7 @@ export default function StoryViewer({ storyId, stories, currentIndex, onClose, o
         <button 
           onClick={deleteStory}
           className="absolute top-4 left-4 text-white z-10 bg-black/50 rounded-full p-1"
+          aria-label="Delete story"
         >
           <Trash2 size={24} />
         </button>
@@ -286,6 +289,7 @@ export default function StoryViewer({ storyId, stories, currentIndex, onClose, o
       {/* Story content */}
       <div className="relative w-full h-full flex items-center justify-center">
         {story.media_type === 'image' ? (
+          // eslint-disable-next-line @next/next/no-img-element
           <img
             src={story.media_url}
             alt="Story"
@@ -308,18 +312,21 @@ export default function StoryViewer({ storyId, stories, currentIndex, onClose, o
         <button 
           onClick={handlePrev}
           className="absolute left-0 top-0 bottom-0 w-1/3 z-10"
+          aria-label="Previous story"
         />
       )}
       
       <button 
         onClick={handleRestart}
         className="absolute left-1/3 top-0 bottom-0 w-1/3 z-10"
+        aria-label="Restart story"
       />
       
       {currentIndex < stories.length - 1 && (
         <button 
           onClick={handleNext}
           className="absolute right-0 top-0 bottom-0 w-1/3 z-10"
+          aria-label="Next story"
         />
       )}
     </div>

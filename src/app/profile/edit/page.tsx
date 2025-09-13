@@ -21,19 +21,11 @@ interface Post {
   created_at: string
 }
 
-interface Follow {
-  id: string
-  follower_id: string
-  following_id: string
-  created_at: string
-}
-
 export default function Profile() {
   const user = useAuthStore((state) => state.user) as User
   const [posts, setPosts] = useState<Post[]>([])
   const [followers, setFollowers] = useState(0)
   const [following, setFollowing] = useState(0)
-  const [isFollowing, setIsFollowing] = useState(false)
   const [loading, setLoading] = useState(true)
 
   // Move function declaration before useEffect
@@ -88,44 +80,7 @@ export default function Profile() {
   useEffect(() => {
     if (!user) return
     fetchProfileData()
-  }, [user])
-
-  const handleFollow = async () => {
-    try {
-      const { error } = await supabase.from('follows').insert({
-        follower_id: user.id,
-        following_id: user.id,
-      })
-      
-      if (error) {
-        console.error('Error following user:', error)
-      } else {
-        setIsFollowing(true)
-        setFollowers(followers + 1)
-      }
-    } catch (error) {
-      console.error('Exception following user:', error)
-    }
-  }
-
-  const handleUnfollow = async () => {
-    try {
-      const { error } = await supabase
-        .from('follows')
-        .delete()
-        .eq('follower_id', user.id)
-        .eq('following_id', user.id)
-      
-      if (error) {
-        console.error('Error unfollowing user:', error)
-      } else {
-        setIsFollowing(false)
-        setFollowers(followers - 1)
-      }
-    } catch (error) {
-      console.error('Exception unfollowing user:', error)
-    }
-  }
+  }, [user, fetchProfileData])
 
   if (loading) return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black text-white flex">
@@ -168,6 +123,7 @@ export default function Profile() {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-6">
             {posts.map((post) => (
               <div key={post.id} className="aspect-square rounded-lg overflow-hidden border border-gray-700 shadow-card">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={post.media_url}
                   alt="Post"

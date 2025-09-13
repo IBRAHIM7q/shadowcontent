@@ -91,19 +91,6 @@ export default function Profile() {
     }
   }
 
-  const handleSignOut = async () => {
-    try {
-      const { error } = await supabase.auth.signOut()
-      if (error) {
-        console.error('Error signing out:', error)
-      } else {
-        window.location.href = '/'
-      }
-    } catch (error) {
-      console.error('Exception signing out:', error)
-    }
-  }
-
   const startEditingUsername = () => {
     setNewUsername(username)
     setEditingUsername(true)
@@ -254,13 +241,13 @@ export default function Profile() {
     setNewUsername(user.username || '')
     setAvatarUrl(user.avatar_url || '')
     fetchUserPosts()
-  }, [user])
+  }, [user, fetchUserPosts])
 
   // Fetch fresh user data when component mounts
   useEffect(() => {
     if (!user) return
     fetchUserData()
-  }, [user])
+  }, [user, fetchUserData])
 
   // Show loading state
   if (loading) {
@@ -325,6 +312,7 @@ export default function Profile() {
                 >
                   <div className="w-full h-full rounded-full bg-gray-900 flex items-center justify-center overflow-hidden">
                     {avatarUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
                       <img 
                         src={avatarUrl} 
                         alt="Profile" 
@@ -436,6 +424,7 @@ export default function Profile() {
               {posts.map(post => (
                 <div key={post.id} className="group relative bg-gray-800/50 rounded-2xl overflow-hidden border border-gray-700 hover:border-gray-600 transition-all duration-300 transform hover:scale-[1.02] shadow-card">
                   <div className="aspect-square overflow-hidden">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img 
                       src={post.media_url} 
                       alt={post.title || "Post"} 

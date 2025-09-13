@@ -12,11 +12,6 @@ interface User {
   avatar_url: string
 }
 
-interface Follower {
-  follower_id: string
-  users: User
-}
-
 // Page-Funktion direkt mit Typen für params
 export default function FollowersPage() {
   const { id } = useParams<{ id: string }>()
@@ -52,7 +47,7 @@ export default function FollowersPage() {
     if (id) {
       fetchFollowers()
     }
-  }, [id])
+  }, [id, fetchFollowers])
 
   if (loading) return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black text-white flex">
@@ -81,6 +76,7 @@ export default function FollowersPage() {
                   href={`/profile/${user.id}`}
                   className="flex items-center gap-3 p-3 bg-gray-800 rounded-lg hover:bg-gray-700 border border-gray-700 transition-colors shadow-card"
                 >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={user.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.username}`}
                     alt={user.username}

@@ -2,6 +2,95 @@
 import { createBrowserClient } from '@supabase/ssr'
 import { SupabaseClient } from '@supabase/supabase-js'
 
+// Define proper types for our mock client
+interface SignUpCredentials {
+  email: string;
+  password: string;
+  options?: {
+    emailRedirectTo?: string;
+    data?: Record<string, unknown>;
+  };
+}
+
+interface SignInCredentials {
+  email: string;
+  password: string;
+}
+
+interface ResendParams {
+  type: string;
+  email: string;
+}
+
+interface UpdateUserAttributes {
+  email?: string;
+  password?: string;
+  data?: Record<string, unknown>;
+}
+
+interface UploadOptions {
+  cacheControl?: string;
+  upsert?: boolean;
+  contentType?: string;
+}
+
+interface MockAuth {
+  getSession: () => Promise<{ data: { session: null }; error: null }>;
+  signUp: (credentials: SignUpCredentials) => Promise<{ data: { user: null; session: null }; error: null }>;
+  signInWithPassword: (credentials: SignInCredentials) => Promise<{ data: { user: null; session: null }; error: null }>;
+  signOut: () => Promise<{ error: null }>;
+  updateUser: (attributes: UpdateUserAttributes) => Promise<{ data: { user: null }; error: null }>;
+  resend: (params: ResendParams) => Promise<{ error: null }>;
+}
+
+interface MockStorageFile {
+  path: string;
+}
+
+interface MockPublicUrlData {
+  publicUrl: string;
+}
+
+interface MockStorage {
+  from: (bucket: string) => {
+    upload: (path: string, file: File | string, options?: UploadOptions) => Promise<{ data: MockStorageFile; error: null }>;
+    getPublicUrl: (path: string) => { data: MockPublicUrlData };
+    remove: (paths: string[]) => Promise<{ data: null; error: null }>;
+    listBuckets: () => Promise<{ data: Array<{name: string}>; error: null }>;
+  };
+}
+
+interface MockDatabaseQuery {
+  single: () => Promise<{ data: null; error: null }>;
+  limit: (count: number) => Promise<{ data: null; error: null }>;
+}
+
+interface MockDatabase {
+  from: (table: string) => {
+    select: (columns?: string) => {
+      eq: (column: string, value: string | number) => MockDatabaseQuery;
+      order: (column: string, options: { ascending: boolean }) => {
+        eq: (column: string, value: string | number) => Promise<{ data: null; error: null }>;
+      };
+      limit: (count: number) => Promise<{ data: null; error: null }>;
+      single: () => Promise<{ data: null; error: null }>;
+    };
+    insert: (data: Record<string, unknown>) => Promise<{ data: null; error: null }>;
+    update: (data: Record<string, unknown>) => {
+      eq: (column: string, value: string | number) => Promise<{ data: null; error: null }>;
+    };
+    delete: () => {
+      eq: (column: string, value: string | number) => Promise<{ data: null; error: null }>;
+    };
+  };
+}
+
+interface MockClient {
+  auth: MockAuth;
+  from: (table: string) => MockDatabase['from'];
+  storage: MockStorage;
+}
+
 // Create a function that initializes the Supabase client only when called
 export const createSupabaseClient = () => {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
@@ -20,54 +109,6 @@ export const createSupabaseClient = () => {
 // but only initialize it when accessed in the browser
 let client: ReturnType<typeof createBrowserClient> | null = null
 
-// Define types for our mock client
-interface MockAuth {
-  getSession: () => Promise<{ data: { session: null }; error: null }>;
-  signUp: (credentials: { email: string; password: string; options?: any }) => Promise<{ data: { user: null; session: null }; error: null }>;
-  signInWithPassword: (credentials: { email: string; password: string }) => Promise<{ data: { user: null; session: null }; error: null }>;
-  signOut: () => Promise<{ error: null }>;
-  updateUser: (attributes: any) => Promise<{ data: { user: null }; error: null }>;
-  resend: (params: { type: string; email: string }) => Promise<{ error: null }>;
-}
-
-interface MockStorage {
-  from: (bucket: string) => {
-    upload: (path: string, file: any, options?: any) => Promise<{ data: { path: string }; error: null }>;
-    getPublicUrl: (path: string) => { data: { publicUrl: string } };
-    remove: (paths: string[]) => Promise<{ data: null; error: null }>;
-    listBuckets: () => Promise<{ data: any[]; error: null }>;
-  };
-}
-
-interface MockDatabase {
-  from: (table: string) => {
-    select: (columns?: string) => {
-      eq: (column: string, value: any) => { 
-        single: () => Promise<{ data: null; error: null }>;
-        limit: () => Promise<{ data: null; error: null }>;
-      };
-      order: (column: string, options: { ascending: boolean }) => {
-        eq: (column: string, value: any) => Promise<{ data: null; error: null }>;
-      };
-      limit: (count: number) => Promise<{ data: null; error: null }>;
-      single: () => Promise<{ data: null; error: null }>;
-    };
-    insert: (data: any) => Promise<{ data: null; error: null }>;
-    update: (data: any) => {
-      eq: (column: string, value: any) => Promise<{ data: null; error: null }>;
-    };
-    delete: () => {
-      eq: (column: string, value: any) => Promise<{ data: null; error: null }>;
-    };
-  };
-}
-
-interface MockClient {
-  auth: MockAuth;
-  from: MockDatabase['from'];
-  storage: MockStorage;
-}
-
 // Mock client for build time
 const mockClient: MockClient = {
   auth: {
@@ -78,22 +119,22 @@ const mockClient: MockClient = {
     updateUser: () => Promise.resolve({ data: { user: null }, error: null }),
     resend: () => Promise.resolve({ error: null }),
   },
-  from: (() => ({
-    select: () => ({ 
-      eq: () => ({ single: () => Promise.resolve({ data: null, error: null }), limit: () => Promise.resolve({ data: null, error: null }) }),
-      order: () => ({ eq: () => Promise.resolve({ data: null, error: null }) }),
-      limit: () => Promise.resolve({ data: null, error: null }),
+  from: ((table: string) => ({
+    select: (columns?: string) => ({ 
+      eq: (column: string, value: string | number) => ({ single: () => Promise.resolve({ data: null, error: null }), limit: () => Promise.resolve({ data: null, error: null }) }),
+      order: () => ({ eq: (column: string, value: string | number) => Promise.resolve({ data: null, error: null }) }),
+      limit: (count: number) => Promise.resolve({ data: null, error: null }),
       single: () => Promise.resolve({ data: null, error: null })
     }),
-    insert: () => Promise.resolve({ data: null, error: null }),
-    update: () => ({ eq: () => Promise.resolve({ data: null, error: null }) }),
-    delete: () => ({ eq: () => Promise.resolve({ data: null, error: null }) }),
-  })) as MockDatabase['from'],
+    insert: (data: Record<string, unknown>) => Promise.resolve({ data: null, error: null }),
+    update: (data: Record<string, unknown>) => ({ eq: (column: string, value: string | number) => Promise.resolve({ data: null, error: null }) }),
+    delete: () => ({ eq: (column: string, value: string | number) => Promise.resolve({ data: null, error: null }) }),
+  })) as (table: string) => MockDatabase['from'],
   storage: {
-    from: () => ({
-      upload: () => Promise.resolve({ data: { path: '' }, error: null }),
-      getPublicUrl: () => ({ data: { publicUrl: '' } }),
-      remove: () => Promise.resolve({ data: null, error: null }),
+    from: (bucket: string) => ({
+      upload: (path: string, file: File | string, options?: UploadOptions) => Promise.resolve({ data: { path: '' }, error: null }),
+      getPublicUrl: (path: string) => ({ data: { publicUrl: '' } }),
+      remove: (paths: string[]) => Promise.resolve({ data: null, error: null }),
       listBuckets: () => Promise.resolve({ data: [], error: null }),
     })
   }

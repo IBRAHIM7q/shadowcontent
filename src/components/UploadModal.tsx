@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useAuthStore } from '@/lib/store'
 import { supabase } from '@/lib/supabase'
 import { X, Image, Video } from 'lucide-react'
@@ -19,7 +19,6 @@ interface UploadModalProps {
 
 export default function UploadModal({ onClose }: UploadModalProps) {
   const user = useAuthStore((state) => state.user) as User
-  const loading = useAuthStore((state) => state.loading)
   const [step, setStep] = useState<'select' | 'post'>('select')
   const [file, setFile] = useState<File | null>(null)
   const [title, setTitle] = useState('')
@@ -197,6 +196,7 @@ export default function UploadModal({ onClose }: UploadModalProps) {
         <div className="p-4 border-b border-gray-700 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-full flex items-center justify-center">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img 
                 src="/images/shadow-logo.png" 
                 alt="Shadow Logo" 
@@ -210,6 +210,7 @@ export default function UploadModal({ onClose }: UploadModalProps) {
           <button 
             onClick={onClose} 
             className="text-gray-400 hover:text-white transition-colors"
+            aria-label="Close"
           >
             <X size={24} />
           </button>
@@ -219,6 +220,7 @@ export default function UploadModal({ onClose }: UploadModalProps) {
           <div className="p-6 space-y-6">
             <label className="flex flex-col items-center p-8 border-2 border-dashed border-gray-600 rounded-2xl cursor-pointer hover:bg-gray-700/50 transition-colors">
               <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img 
                   src="/images/shadow-logo.png" 
                   alt="Shadow Logo" 
@@ -283,7 +285,7 @@ export default function UploadModal({ onClose }: UploadModalProps) {
                   // eslint-disable-next-line @next/next/no-img-element
                   <img 
                     src={URL.createObjectURL(file)} 
-                    alt="Preview" 
+                    alt="Preview of selected media" 
                     className="w-full h-full object-contain"
                   />
                 ) : (

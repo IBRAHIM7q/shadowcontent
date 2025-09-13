@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
-import { createServerClient, type CookieOptions } from '@supabase/ssr'
+// Import only what we need to avoid unused import warnings
+import { type CookieOptions, createServerClient } from '@supabase/ssr'
 
 // Function to create service role client only when needed
 function getServiceRoleClient() {

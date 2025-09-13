@@ -150,7 +150,7 @@ export default function Post({ post }: PostProps) {
     }
 
     fetchData()
-  }, [post.user_id, post.id, currentUser])
+  }, [post.user_id, post.id, currentUser, fetchUserData, fetchLikes, fetchComments, checkIfLiked])
 
   if (loading) {
     return (
@@ -171,6 +171,7 @@ export default function Post({ post }: PostProps) {
       {/* Post header */}
       <div className="flex items-center gap-3 mb-4">
         {userData?.avatar_url ? (
+          // eslint-disable-next-line @next/next/no-img-element
           <img 
             src={userData.avatar_url} 
             alt={userData.username} 
@@ -195,6 +196,7 @@ export default function Post({ post }: PostProps) {
 
       {/* Post media */}
       <div className="rounded-xl overflow-hidden mb-4">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img 
           src={post.media_url} 
           alt={post.title} 
@@ -212,6 +214,7 @@ export default function Post({ post }: PostProps) {
         <button 
           onClick={handleLike}
           className={`flex items-center gap-2 ${liked ? 'text-red-500' : 'text-gray-400 hover:text-red-500'} transition-colors`}
+          aria-label={liked ? "Unlike post" : "Like post"}
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill={liked ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />

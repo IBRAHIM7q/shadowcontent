@@ -22,7 +22,7 @@ interface AuthState {
 }
 
 // Create the store
-export const useAuthStore = create<AuthState>()((set, get) => {
+export const useAuthStore = create<AuthState>()((set) => {
   // Initialize loading state
   set({ loading: true, user: null })
   
@@ -98,7 +98,7 @@ export const useAuthStore = create<AuthState>()((set, get) => {
   })
   
   // Auth state change listener
-  const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+  supabase.auth.onAuthStateChange((_event, session) => {
     console.log('Auth state changed:', _event, session ? 'User logged in' : 'User logged out');
     if (session?.user) {
       fetchUserData(session.user.id).then(userData => {

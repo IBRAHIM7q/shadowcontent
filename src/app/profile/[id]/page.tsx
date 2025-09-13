@@ -77,12 +77,12 @@ export default function Profile() {
   useEffect(() => {
     if (!id) return
     fetchUserProfile()
-  }, [id])
+  }, [id, fetchUserProfile])
 
   useEffect(() => {
     if (!profileUser?.id) return
     fetchUserPosts()
-  }, [profileUser?.id])
+  }, [profileUser?.id, fetchUserPosts])
 
   if (userLoading) {
     return (
@@ -121,6 +121,7 @@ export default function Profile() {
       <div className="flex-grow md:ml-64 pb-16 md:pb-0">
         <div className="p-6 border-b border-gray-800">
           <div className="flex items-center gap-4 mb-4">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={profileUser.avatar_url || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + profileUser.username}
               alt={profileUser.username}
@@ -148,6 +149,7 @@ export default function Profile() {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 p-4">
             {posts.map((post) => (
               <div key={post.id} className="aspect-square rounded-lg overflow-hidden border border-gray-700 shadow-card">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={post.media_url} alt={post.title || 'Post image'} className="w-full h-full object-cover transition-transform duration-300 hover:scale-105" />
               </div>
             ))}
