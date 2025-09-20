@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import Post from './Post'
-import { getSupabaseClient } from '@/lib/supabase'
+import { supabase } from '@/lib/supabaseClient'
 
 interface PostData {
   id: string
@@ -18,9 +18,6 @@ export default function Feed() {
 
   const fetchPosts = useCallback(async () => {
     try {
-      // Get Supabase client instance
-      const supabase = getSupabaseClient()
-      
       const { data, error } = await supabase
         .from('posts')
         .select('*')

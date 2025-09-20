@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { useAuthStore } from '@/lib/store'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/lib/supabaseClient'
 import Link from 'next/link'
 
 // Define types for our data
@@ -247,7 +247,8 @@ export default function Post({ post: initialPost }: { post: PostType }) {
   }
   
   const addComment = async () => {
-    if (!newComment.trim() || !user || !post?.id) return
+    if (!user || !newComment.trim() || !post?.id) return
+    
     try {
       // Ensure user exists in database
       const { error: userError } = await supabase
@@ -273,9 +274,9 @@ export default function Post({ post: initialPost }: { post: PostType }) {
       }
       
       const { error } = await supabase.from('comments').insert({
-        user_id: user.id,
-        post_id: post.id,
         text: newComment,
+        user_id: user.id,
+        post_id: post.id
       })
       
       if (error) {
@@ -295,7 +296,6 @@ export default function Post({ post: initialPost }: { post: PostType }) {
     }
   }
   
-  // Add delete comment functionality
   const deleteComment = async (commentId: string) => {
     if (!user) return
     
@@ -304,8 +304,8 @@ export default function Post({ post: initialPost }: { post: PostType }) {
         .from('comments')
         .delete()
         .eq('id', commentId)
-        .eq('user_id', user.id) // Ensure user can only delete their own comments
-      
+        .eq('user_id', user.id)
+        
       if (error) {
         console.error('Error deleting comment:', error.message || error)
         return
@@ -321,7 +321,7 @@ export default function Post({ post: initialPost }: { post: PostType }) {
       }
     }
   }
-  
+
   // Add delete post functionality
   const deletePost = async () => {
     if (!user || post.user_id !== user.id) return

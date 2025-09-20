@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useAuthStore } from '@/lib/store'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/lib/supabaseClient'
 import { X, Image, Video } from 'lucide-react'
 
 // Define types for our data

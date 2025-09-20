@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { getSupabaseClient } from '@/lib/supabase'
+import { supabase } from '@/lib/supabaseClient'
 
 // Define proper types for our data
 interface TestResultData {
@@ -22,9 +22,6 @@ export default function TestSupabase() {
   useEffect(() => {
     const testSupabase = async () => {
       try {
-        // Get Supabase client instance
-        const supabase = getSupabaseClient()
-        
         // Test authentication status
         const { data: { session }, error: sessionError } = await supabase.auth.getSession()
         

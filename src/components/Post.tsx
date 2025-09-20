@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { getSupabaseClient } from '@/lib/supabase'
+import { supabase } from '@/lib/supabaseClient'
 import { useAuthUser } from '@/lib/store'
 import Link from 'next/link'
 
@@ -31,9 +31,6 @@ export default function Post({ post }: PostProps) {
 
   const fetchUserData = async () => {
     try {
-      // Get Supabase client instance
-      const supabase = getSupabaseClient()
-      
       const { data, error } = await supabase
         .from('users')
         .select('id, username, avatar_url')
@@ -49,9 +46,6 @@ export default function Post({ post }: PostProps) {
 
   const fetchLikes = async () => {
     try {
-      // Get Supabase client instance
-      const supabase = getSupabaseClient()
-      
       const { count, error } = await supabase
         .from('likes')
         .select('*', { count: 'exact' })
@@ -66,9 +60,6 @@ export default function Post({ post }: PostProps) {
 
   const fetchComments = async () => {
     try {
-      // Get Supabase client instance
-      const supabase = getSupabaseClient()
-      
       const { count, error } = await supabase
         .from('comments')
         .select('*', { count: 'exact' })
@@ -85,9 +76,6 @@ export default function Post({ post }: PostProps) {
     if (!currentUser) return
     
     try {
-      // Get Supabase client instance
-      const supabase = getSupabaseClient()
-      
       const { data, error } = await supabase
         .from('likes')
         .select('id')
@@ -106,9 +94,6 @@ export default function Post({ post }: PostProps) {
     if (!currentUser) return
     
     try {
-      // Get Supabase client instance
-      const supabase = getSupabaseClient()
-      
       if (liked) {
         // Unlike
         const { error } = await supabase

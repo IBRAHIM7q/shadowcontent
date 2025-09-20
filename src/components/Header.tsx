@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { getSupabaseClient } from '@/lib/supabase'
+import { supabase } from '@/lib/supabaseClient'
 import { useAuthUser, useAuthLoading, useAuthStore } from '@/lib/store'
 import { Menu, X, Home, Search, Plus, Heart, User } from 'lucide-react'
 
@@ -16,14 +16,11 @@ export default function Header() {
 
   const handleSignOut = async () => {
     try {
-      // Get Supabase client instance
-      const supabase = getSupabaseClient()
-      
       const { error } = await supabase.auth.signOut()
       if (error) throw error
       
       // Clear the store
-      useAuthStore.getState().clearUser()
+      useAuthStore.getState().setUser(null)
       
       // Redirect to home
       window.location.href = '/'
@@ -34,9 +31,6 @@ export default function Header() {
 
   const checkUser = async () => {
     try {
-      // Get Supabase client instance
-      const supabase = getSupabaseClient()
-      
       const { data: { session } } = await supabase.auth.getSession()
       if (session?.user) {
         // Fetch user data
@@ -48,16 +42,16 @@ export default function Header() {
         
         if (error) {
           console.error('Error fetching user data:', error)
-          useAuthStore.getState().clearUser()
+          useAuthStore.getState().setUser(null)
         } else {
           useAuthStore.getState().setUser(userData)
         }
       } else {
-        useAuthStore.getState().clearUser()
+        useAuthStore.getState().setUser(null)
       }
     } catch (error) {
       console.error('Error checking user:', error)
-      useAuthStore.getState().clearUser()
+      useAuthStore.getState().setUser(null)
     } finally {
       useAuthStore.getState().setLoading(false)
     }

@@ -1,6 +1,6 @@
 'use client'  // ✅ Diese Zeile muss ganz oben stehen
 import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/lib/supabaseClient'
 import Post from './Post'
 
 // Define types for our data

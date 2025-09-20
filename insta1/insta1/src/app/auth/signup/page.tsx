@@ -3,7 +3,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/lib/supabaseClient'
 import Link from 'next/link'
 import { Eye, EyeOff } from 'lucide-react'
 
@@ -26,7 +26,7 @@ const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {    e.preve
 
     try {
       // First, try to sign up the user
-      const { data, error: authError } = await supabase.getInstance().auth.signUp({
+      const { data, error: authError } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -44,7 +44,7 @@ const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {    e.preve
         setSuccess(true)
       } else if (data.user) {
         // Try to sign in immediately
-        const { error: signInError } = await supabase.getInstance().auth.signInWithPassword({
+        const { error: signInError } = await supabase.auth.signInWithPassword({
           email,
           password
         })

@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { useAuthStore } from '@/lib/store'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/lib/supabaseClient'
 import StoryViewer from './StoryViewer'
 
 // Define types for our data

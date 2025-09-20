@@ -2,10 +2,10 @@
 
 import { useAuthStore } from '@/lib/store'
 import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
-import Link from 'next/link'
+import { supabase } from '../../../../lib/supabaseClient'
 import { useParams } from 'next/navigation'
 import Header from '@/components/Header'
+import Link from 'next/link'
 
 // Define types for our data
 interface User {

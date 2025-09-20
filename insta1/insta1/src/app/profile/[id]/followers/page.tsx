@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/lib/supabaseClient'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import Header from '@/components/Header'
@@ -26,7 +26,7 @@ export default function FollowersPage() {
   const fetchFollowers = async () => {
     setLoading(true)
     try {
-      const { data, error } = await supabase.getInstance()
+      const { data, error } = await supabase
         .from('follows')
         .select(`
           follower_id,
@@ -40,9 +40,9 @@ export default function FollowersPage() {
 
       if (error) console.error(error)
        
-      else setFollowers(data?.flatMap((f: Follower) => f.users) || []) 
+      else setFollowers(data?.flatMap((f) => f.users) || []) 
    } catch (err) {
-      console.error(err)
+
     } finally {
       setLoading(false)
     }

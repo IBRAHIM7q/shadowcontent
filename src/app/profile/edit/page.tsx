@@ -1,6 +1,6 @@
 'use client'
 import { useAuthStore } from '@/lib/store'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/lib/supabaseClient'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Header from '@/components/Header'

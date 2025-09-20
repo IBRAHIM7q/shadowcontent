@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useAuthUser, useAuthLoading } from '@/lib/store'
 import Link from 'next/link'
 import UploadModal from './UploadModal'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/lib/supabaseClient'
 
 // Define types for our data
 interface User {
@@ -71,7 +71,7 @@ export default function Header() {
                   <button
                     onClick={async () => {
                       try {
-                        const { error } = await supabase.getInstance().auth.signOut()
+                        const { error } = await supabase.auth.signOut()
                         if (error) {
                           console.error('Error signing out:', error)
                         } else {
@@ -132,7 +132,7 @@ export default function Header() {
                 <span className="text-xs mt-1">Create</span>
               </button>
               
-              <Link href="/profile" className="flex flex-col items-center py-2 px-3 rounded-lg text-gray-300 hover:text-green-400 transition-colors">
+              <Link href="/profile" className="flex flex-col items-center py-2 px-33 rounded-lg text-gray-300 hover:text-green-400 transition-colors">
                 <div className="w-6 h-6 rounded-full bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-center">
                   <span className="text-xs text-black font-bold">
                     {user?.username ? user.username.charAt(0).toUpperCase() : 'U'}
@@ -154,7 +154,7 @@ export default function Header() {
             <button 
               onClick={async () => {
                 try {
-                  const { error } = await supabase.getInstance().auth.signOut()
+                  const { error } = await supabase.auth.signOut()
                   if (error) {
                     console.error('Error signing out:', error)
                   } else {

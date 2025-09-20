@@ -105,10 +105,6 @@ export const createSupabaseClient = () => {
   return createBrowserClient(supabaseUrl, supabaseAnonKey)
 }
 
-// For backward compatibility, we can still export a client instance
-// but only initialize it when accessed in the browser
-let client: ReturnType<typeof createBrowserClient> | null = null
-
 // Mock client for build time
 const mockClient: MockClient = {
   auth: {
@@ -119,17 +115,40 @@ const mockClient: MockClient = {
     updateUser: () => Promise.resolve({ data: { user: null }, error: null }),
     resend: () => Promise.resolve({ error: null }),
   },
-  from: ((table: string) => ({
-    select: (columns?: string) => ({ 
-      eq: (column: string, value: string | number) => ({ single: () => Promise.resolve({ data: null, error: null }), limit: () => Promise.resolve({ data: null, error: null }) }),
-      order: () => ({ eq: (column: string, value: string | number) => Promise.resolve({ data: null, error: null }) }),
-      limit: (count: number) => Promise.resolve({ data: null, error: null }),
-      single: () => Promise.resolve({ data: null, error: null })
-    }),
-    insert: (data: Record<string, unknown>) => Promise.resolve({ data: null, error: null }),
-    update: (data: Record<string, unknown>) => ({ eq: (column: string, value: string | number) => Promise.resolve({ data: null, error: null }) }),
-    delete: () => ({ eq: (column: string, value: string | number) => Promise.resolve({ data: null, error: null }) }),
-  })) as (table: string) => MockDatabase['from'],
+  from: (table: string) => {
+    // Implement the MockDatabase['from'] interface
+    return {
+      select: (columns?: string) => {
+        return {
+          eq: (column: string, value: string | number) => {
+            // Return MockDatabaseQuery
+            return {
+              single: () => Promise.resolve({ data: null, error: null }),
+              limit: (count: number) => Promise.resolve({ data: null, error: null })
+            };
+          },
+          order: (column: string, options: { ascending: boolean }) => {
+            return {
+              eq: (column: string, value: string | number) => Promise.resolve({ data: null, error: null })
+            };
+          },
+          limit: (count: number) => Promise.resolve({ data: null, error: null }),
+          single: () => Promise.resolve({ data: null, error: null })
+        };
+      },
+      insert: (data: Record<string, unknown>) => Promise.resolve({ data: null, error: null }),
+      update: (data: Record<string, unknown>) => {
+        return {
+          eq: (column: string, value: string | number) => Promise.resolve({ data: null, error: null })
+        };
+      },
+      delete: () => {
+        return {
+          eq: (column: string, value: string | number) => Promise.resolve({ data: null, error: null })
+        };
+      }
+    };
+  },
   storage: {
     from: (bucket: string) => ({
       upload: (path: string, file: File | string, options?: UploadOptions) => Promise.resolve({ data: { path: '' }, error: null }),
@@ -140,28 +159,17 @@ const mockClient: MockClient = {
   }
 }
 
-interface SupabaseInstance {
-  getInstance: () => MockClient | ReturnType<typeof createBrowserClient>;
-}
+// Cache for the client instance
+let client: ReturnType<typeof createBrowserClient> | null = null
 
-export const supabase: SupabaseInstance = {
-  getInstance: () => {
-    if (typeof window === 'undefined') {
-      // Return a mock client during build time
-      return mockClient
-    }
-    
-    if (!client) {
-      client = createSupabaseClient()
-    }
-    return client
-  }
-}
+// Export the supabase client directly
+export const supabase = typeof window === 'undefined' 
+  ? mockClient 
+  : (client || (client = createSupabaseClient()))
 
-// For direct access in client components (only in browser)
+// For server-side usage
 export const getSupabaseClient = () => {
   if (typeof window === 'undefined') {
-    // Return a mock client during build time instead of throwing an error
     return mockClient
   }
   return createSupabaseClient()

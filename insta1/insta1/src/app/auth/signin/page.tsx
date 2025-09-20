@@ -3,7 +3,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/lib/supabaseClient'
 import Link from 'next/link'
 import { Eye, EyeOff } from 'lucide-react'
 
@@ -24,7 +24,7 @@ const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
 
     try {
       console.log('Attempting to sign in with email:', email)
-      const { error, data } = await supabase.getInstance().auth.signInWithPassword({ email, password })
+      const { error, data } = await supabase.auth.signInWithPassword({ email, password })
       console.log('Sign in response:', { error, data })
       
       if (error) {
@@ -67,7 +67,7 @@ const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
     setLoading(true)
     try {
       console.log('Resending confirmation email to:', email)
-      const { error } = await supabase.getInstance().auth.resend({
+      const { error } = await supabase.auth.resend({
         type: 'signup',
         email: email,
       })

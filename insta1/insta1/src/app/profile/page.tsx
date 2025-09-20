@@ -2,7 +2,7 @@
 
 import { useAuthUser, useAuthLoading, useAuthStore } from '@/lib/store'
 import { useEffect, useState, useRef } from 'react'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/lib/supabaseClient'
 import Link from 'next/link'
 import Header from '@/components/Header'
 
@@ -93,7 +93,7 @@ export default function Profile() {
 
   const handleSignOut = async () => {
     try {
-      const { error } = await supabase.getInstance().auth.signOut()
+      const { error } = await supabase.auth.signOut()
       if (error) {
         console.error('Error signing out:', error)
       } else {
@@ -128,7 +128,7 @@ export default function Profile() {
       if (updateError) throw updateError
 
       // Update username in auth user
-      const { error: authError } = await supabase.getInstance().auth.updateUser({
+      const { error: authError } = await supabase.auth.updateUser({
         data: { username: newUsername }
       })
 
@@ -189,7 +189,7 @@ export default function Profile() {
       if (updateError) throw updateError
 
       // Update auth user metadata
-      const { error: authError } = await supabase.getInstance().auth.updateUser({
+      const { error: authError } = await supabase.auth.updateUser({
         data: { avatar_url: publicUrl }
       })
 

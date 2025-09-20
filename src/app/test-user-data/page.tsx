@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/lib/supabaseClient'
 
 interface User {
   id: string
@@ -26,7 +26,7 @@ export default function TestUserData() {
         }
         
         // Then, fetch user data from the users table
-        const { data, error } = await supabase.getInstance()
+        const { data, error } = await supabase
           .from('users')
           .select('*')
           .eq('id', userId)

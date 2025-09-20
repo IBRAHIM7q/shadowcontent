@@ -2,10 +2,10 @@
 
 import { useAuthStore } from '@/lib/store'
 import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
-import Link from 'next/link'
+import { supabase } from '@/lib/supabaseClient'
 import { useParams } from 'next/navigation'
 import Header from '@/components/Header'
+import Link from 'next/link'
 
 // Define types for our data
 interface User {
@@ -35,12 +35,11 @@ export default function Profile() {
   const fetchUserProfile = async () => {
     setUserLoading(true)
     try {
-      const { data, error } = await supabase
-        .from('users')
-        .select('id, username, email, avatar_url, created_at')
+       const { data, error } = await supabase
+         .from('users')  // <- Fehler tritt hier auf
+         .select('id, username, email, avatar_url, created_at')
         .eq('id', id)
-        .single()
-
+         .single()
       if (error) {
         console.error('Error fetching user profile:', error)
       } else {
